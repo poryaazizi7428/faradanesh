@@ -1315,6 +1315,14 @@
   window.logout = logout;
   window.initPlayer = initPlayer;
 </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/faradanesh/sw.js')
+      .then(() => console.log('✅ Service Worker ثبت شد'))
+      .catch(err => console.log('❌ خطا در ثبت Service Worker:', err));
+  }
+</script>
 
 </body>
 </html>
+
