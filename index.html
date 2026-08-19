@@ -1,1328 +1,1782 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>فرادانش پرو — پلتفرم آموزشی امن</title>
-  <link rel="manifest" href="/faradanesh/manifest.json">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-  <script src="https://accounts.google.com/gsi/client"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg-0: #0B0D11;
-      --bg-1: #141720;
-      --bg-2: #1B1F2A;
-      --bg-3: #242938;
-      --gold: #E8A93B;
-      --gold-dim: #8A6A2C;
-      --gold-tint: #3A2F1A;
-      --green: #3DDC97;
-      --red: #E85D5D;
-      --text-1: #F2F3F5;
-      --text-2: #9AA1B0;
-      --text-3: #5E6577;
-      --line: #262B38;
-      --line-2: #333A4A;
-    }
-    body {
-      font-family: 'Vazirmatn', sans-serif;
-      background: #05060A;
-      color: var(--text-1);
-      padding: 20px 10px 60px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      min-height: 100vh;
-      justify-content: center;
-    }
-    .frame {
-      width: 100%;
-      max-width: 380px;
-      height: 780px;
-      background: var(--bg-0);
-      border-radius: 44px;
-      border: 10px solid #000;
-      box-shadow: 0 0 0 1px #1a1a1a, 0 40px 80px -20px rgba(0,0,0,0.8);
-      overflow: hidden;
-      position: relative;
-      display: none;
-      flex-direction: column;
-    }
-    .frame.active { display: flex; }
-    .notch {
-      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-      width: 120px; height: 24px; background: #000; border-radius: 0 0 16px 16px; z-index: 50;
-    }
-    .screen {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      position: relative;
-      scrollbar-width: none;
-    }
-    .screen::-webkit-scrollbar { display: none; }
-    .status-row { height: 44px; flex-shrink: 0; }
-
-    /* Top Bar */
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 18px 14px; flex-shrink: 0;
-    }
-    .brand { display: flex; align-items: center; gap: 8px; }
-    .brand-mark {
-      width: 30px; height: 30px; border-radius: 9px;
-      background: linear-gradient(160deg, var(--gold), #B87F1E);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; color: #1A1305; font-size: 15px;
-    }
-    .brand-name { font-size: 15px; font-weight: 700; }
-    .icon-btn {
-      width: 34px; height: 34px; border-radius: 10px; background: var(--bg-2);
-      display: flex; align-items: center; justify-content: center; color: var(--text-1);
-      border: 1px solid var(--line); position: relative; cursor: pointer;
-      font-size: 16px;
-    }
-    .icon-btn .dot {
-      position: absolute; top: -3px; left: -3px; width: 8px; height: 8px;
-      border-radius: 50%; background: var(--red); border: 2px solid var(--bg-0);
-    }
-
-    /* License Pill */
-    .license-pill {
-      margin: 0 18px 16px; padding: 10px 14px; border-radius: 14px;
-      background: var(--bg-2); border: 1px solid var(--line);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .license-pill .l-left { display: flex; align-items: center; gap: 9px; }
-    .license-pill .l-icon {
-      width: 30px; height: 30px; border-radius: 9px; background: var(--gold-tint);
-      display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 15px;
-    }
-    .license-pill .l-title { font-size: 12.5px; font-weight: 600; }
-    .license-pill .l-sub { font-size: 11px; color: var(--text-2); margin-top: 1px; }
-    .license-pill .l-days {
-      font-size: 11px; color: var(--green); font-weight: 600;
-      background: rgba(61,220,151,0.12); padding: 4px 9px; border-radius: 100px;
-    }
-
-    /* Search */
-    .search-row { padding: 0 18px 14px; }
-    .search-box {
-      background: var(--bg-2); border: 1px solid var(--line); border-radius: 13px;
-      padding: 11px 14px; display: flex; align-items: center; gap: 8px;
-      color: var(--text-3); font-size: 13px;
-    }
-    .search-box input {
-      background: transparent; border: none; color: var(--text-1); width: 100%;
-      font-family: 'Vazirmatn', sans-serif; font-size: 13px; outline: none;
-    }
-
-    /* Chips */
-    .chips { display: flex; gap: 8px; padding: 0 18px 18px; overflow-x: auto; }
-    .chip {
-      flex-shrink: 0; padding: 8px 16px; border-radius: 100px; font-size: 12.5px;
-      background: var(--bg-2); color: var(--text-2); border: 1px solid var(--line);
-      white-space: nowrap; cursor: pointer;
-    }
-    .chip.on { background: var(--gold); color: #1A1305; font-weight: 600; border-color: var(--gold); }
-
-    /* Grid */
-    .section-label {
-      padding: 0 18px 12px; font-size: 14px; font-weight: 700;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .section-label span.more { font-size: 11.5px; color: var(--gold); font-weight: 500; cursor: pointer; }
-    .grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 11px; padding: 0 18px 20px;
-    }
-    .card {
-      background: var(--bg-2); border-radius: 16px; overflow: hidden;
-      border: 1px solid var(--line); position: relative; cursor: pointer;
-      transition: 0.1s;
-    }
-    .card:active { transform: scale(0.97); }
-    .card-thumb {
-      position: relative; width: 100%; aspect-ratio: 3/4; overflow: hidden;
-      background: linear-gradient(150deg, var(--bg-3), var(--bg-1));
-    }
-    .card-thumb .type-badge {
-      position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 8px;
-      background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; color: #fff;
-    }
-    .card-thumb .ring-wrap {
-      position: absolute; bottom: 8px; left: 8px; width: 34px; height: 34px;
-    }
-    .card-thumb .done-badge {
-      position: absolute; bottom: 8px; left: 8px; width: 24px; height: 24px; border-radius: 50%;
-      background: var(--green); display: flex; align-items: center; justify-content: center;
-      font-size: 13px; color: #08331F;
-    }
-    .card-body { padding: 10px 11px 12px; }
-    .card-title {
-      font-size: 12.5px; font-weight: 600; line-height: 1.4; margin-bottom: 4px;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    }
-    .card-meta { font-size: 10.5px; color: var(--text-2); display: flex; align-items: center; gap: 5px; }
-
-    svg.ring { transform: rotate(-90deg); }
-    svg.ring circle { fill: none; stroke-width: 3; }
-    svg.ring .bg { stroke: rgba(255,255,255,0.15); }
-    svg.ring .fg { stroke: var(--gold); stroke-linecap: round; transition: stroke-dashoffset .3s; }
-    .ring-pct {
-      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      font-size: 9px; font-weight: 700; color: #fff;
-    }
-
-    /* Bottom Nav */
-    .bottomnav {
-      height: 66px; flex-shrink: 0; background: var(--bg-1); border-top: 1px solid var(--line);
-      display: flex; align-items: center; justify-content: space-around; padding-bottom: 6px;
-    }
-    .navitem {
-      display: flex; flex-direction: column; align-items: center; gap: 3px;
-      color: var(--text-3); font-size: 10px; cursor: pointer;
-    }
-    .navitem.on { color: var(--gold); }
-    .navitem .ic { font-size: 20px; }
-
-    /* Player */
-    .player-shell { display: flex; flex-direction: column; height: 100%; background: #000; }
-    .player-video {
-      width: 100%; aspect-ratio: 9/16; background: linear-gradient(160deg,#20242f,#0d0f14);
-      position: relative; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; overflow: hidden;
-    }
-    .player-video video, .player-video audio {
-      width: 100%; height: 100%; object-fit: cover;
-      pointer-events: none;
-    }
-    .player-video audio {
-      height: auto;
-      min-height: 80px;
-    }
-    .watermark {
-      position: absolute; color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 600;
-      transform: rotate(-18deg); pointer-events: none; text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-      letter-spacing: 0.5px;
-    }
-    .wm1 { top: 18%; right: 10%; } .wm2 { top: 52%; left: 8%; } .wm3 { bottom: 14%; right: 22%; }
-    .secure-badge {
-      position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(6px); border: 1px solid rgba(232,169,59,0.4);
-      border-radius: 100px; padding: 5px 12px; font-size: 10.5px;
-      color: var(--gold); display: flex; align-items: center; gap: 5px; pointer-events: none;
-    }
-    .play-btn-c {
-      width: 58px; height: 58px; border-radius: 50%; background: rgba(0,0,0,0.45);
-      backdrop-filter: blur(6px); border: 1.5px solid rgba(255,255,255,0.35);
-      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px;
-      z-index: 5; cursor: pointer; transition: 0.1s;
-    }
-    .play-btn-c:active { transform: scale(0.9); }
-    .p-top-controls {
-      position: absolute; top: 14px; left: 14px; display: flex; gap: 8px;
-    }
-    .p-back {
-      width: 32px; height: 32px; border-radius: 50%; background: rgba(0,0,0,0.5);
-      color: #fff; display: flex; align-items: center; justify-content: center;
-      font-size: 15px; cursor: pointer;
-    }
-    .player-progress-row {
-      position: absolute; bottom: 12px; left: 14px; right: 14px;
-      display: flex; align-items: center; gap: 8px; pointer-events: none;
-    }
-    .player-progress-row .t { font-size: 10px; color: rgba(255,255,255,0.85); }
-    .pbar {
-      flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.25);
-      position: relative; pointer-events: auto;
-    }
-    .pbar .fill { position: absolute; right: 0; top: 0; bottom: 0; width: 38%; background: var(--gold); border-radius: 3px; }
-    .pbar .knob {
-      position: absolute; right: 38%; top: 50%; transform: translate(50%,-50%);
-      width: 10px; height: 10px; border-radius: 50%; background: var(--gold);
-      pointer-events: auto; cursor: pointer;
-    }
-    .player-info { padding: 18px; }
-    .player-info h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; line-height: 1.5; }
-    .player-info .meta-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-    .meta-tag {
-      font-size: 11px; color: var(--text-2); background: var(--bg-2);
-      border: 1px solid var(--line); padding: 5px 10px; border-radius: 100px;
-    }
-    .resume-note {
-      display: flex; align-items: center; gap: 8px; background: var(--gold-tint);
-      border: 1px solid rgba(232,169,59,0.35); padding: 10px 12px; border-radius: 12px;
-      font-size: 12px; color: var(--gold); margin-bottom: 16px;
-    }
-    .warn-note {
-      display: flex; align-items: flex-start; gap: 8px; background: rgba(232,93,93,0.08);
-      border: 1px solid rgba(232,93,93,0.28); padding: 10px 12px; border-radius: 12px;
-      font-size: 11.5px; color: #F0A0A0; line-height: 1.7;
-    }
-
-    /* Import */
-    .import-wrap { padding: 20px 18px; }
-    .import-hero { text-align: center; padding: 26px 10px 22px; }
-    .import-hero .ic-big {
-      width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 18px;
-      background: var(--gold-tint); display: flex; align-items: center; justify-content: center;
-      color: var(--gold); font-size: 28px;
-    }
-    .import-hero h2 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    .import-hero p { font-size: 12.5px; color: var(--text-2); line-height: 1.9; max-width: 280px; margin: 0 auto; }
-    .field-label { font-size: 12px; color: var(--text-2); margin-bottom: 8px; font-weight: 500; }
-    .field-input {
-      background: var(--bg-2); border: 1px solid var(--line); border-radius: 13px;
-      padding: 13px 14px; font-size: 13px; color: var(--text-1); margin-bottom: 16px;
-      display: flex; align-items: center; gap: 9px;
-    }
-    .field-input input {
-      background: transparent; border: none; color: var(--text-1); width: 100%;
-      font-family: 'Vazirmatn', sans-serif; font-size: 13px; outline: none;
-    }
-    .field-input input::placeholder { color: var(--text-3); }
-    .btn-primary {
-      background: var(--gold); color: #1A1305; border: none; border-radius: 13px;
-      padding: 14px; width: 100%; font-family: 'Vazirmatn', sans-serif;
-      font-weight: 700; font-size: 13.5px; cursor: pointer; margin-top: 6px;
-    }
-    .btn-ghost {
-      background: transparent; color: var(--text-2); border: 1px solid var(--line);
-      border-radius: 13px; padding: 13px; width: 100%;
-      font-family: 'Vazirmatn', sans-serif; font-weight: 600; font-size: 12.5px;
-      margin-top: 10px; cursor: pointer;
-    }
-    .import-list-item {
-      display: flex; align-items: center; gap: 11px; background: var(--bg-2);
-      border: 1px solid var(--line); border-radius: 13px; padding: 11px 12px; margin-bottom: 9px;
-    }
-    .import-list-item .thumb-s {
-      width: 42px; height: 42px; border-radius: 9px; background: var(--bg-3);
-      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-      color: var(--text-2); font-size: 16px;
-    }
-    .import-list-item .ii-title { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
-    .import-list-item .ii-status { font-size: 10.5px; }
-    .status-ok { color: var(--green); } .status-wait { color: var(--gold); }
-
-    /* Payment */
-    .pay-card {
-      background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px;
-      padding: 18px; margin: 0 18px 16px;
-    }
-    .pay-card .p-label { font-size: 11.5px; color: var(--text-2); margin-bottom: 6px; }
-    .pay-card .p-number {
-      font-size: 19px; font-weight: 700; letter-spacing: 1.5px; color: var(--gold);
-      margin-bottom: 14px; direction: ltr; text-align: right;
-    }
-    .pay-card .p-row {
-      display: flex; justify-content: space-between; font-size: 12px;
-      color: var(--text-2); padding: 9px 0; border-top: 1px solid var(--line);
-    }
-    .pay-card .p-row b { color: var(--text-1); font-weight: 600; }
-    .copy-btn {
-      font-size: 11px; color: var(--gold); border: 1px solid var(--gold-dim);
-      border-radius: 100px; padding: 5px 12px; background: rgba(232,169,59,0.08);
-      cursor: pointer;
-    }
-    .plan-grid {
-      display: flex; gap: 9px; padding: 0 18px 16px;
-    }
-    .plan-card {
-      flex: 1; background: var(--bg-2); border: 1px solid var(--line);
-      border-radius: 14px; padding: 14px 10px; text-align: center; cursor: pointer;
-    }
-    .plan-card.sel { border-color: var(--gold); background: var(--gold-tint); }
-    .plan-card .pd { font-size: 11px; color: var(--text-2); margin-bottom: 4px; }
-    .plan-card .pp { font-size: 14px; font-weight: 700; }
-    .plan-card.sel .pp { color: var(--gold); }
-
-    /* Profile / Settings */
-    .profile-wrap { padding: 20px 18px; }
-    .profile-avatar {
-      width: 72px; height: 72px; border-radius: 50%; background: var(--bg-2);
-      margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;
-      font-size: 30px; color: var(--text-2); border: 2px solid var(--line);
-    }
-    .profile-wrap .field-label { margin-top: 16px; }
-    .profile-wrap .btn-primary { margin-top: 10px; }
-
-    /* Login overlay inside profile */
-    .login-section {
-      background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px;
-      padding: 16px; margin-bottom: 20px; text-align: center;
-    }
-    .login-section .g_id_signin { display: flex; justify-content: center; margin-top: 10px; }
-
-    /* Toast */
-    .toast {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: var(--bg-2); color: var(--text-1); padding: 12px 24px;
-      border-radius: 14px; border: 1px solid var(--gold); font-size: 13px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 999;
-      opacity: 0; transition: opacity 0.3s; pointer-events: none;
-    }
-    .toast.show { opacity: 1; pointer-events: auto; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes, viewport-fit=cover">
+    <title>فرادانش — پلتفرم امن آموزشی</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', sans-serif; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --bg-app: #0B0D11; --bg-surface: #141720; --bg-card: #1B1F2A; --bg-hover: #242938;
+            --border-color: #262B38; --text-main: #F2F3F5; --text-sub: #9AA1B0;
+            --accent: #0095F6; --gold: #E8A93B; --red: #E85D5D; --green: #3DDC97;
+            --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        [data-theme="light"] {
+            --bg-app: #FAFAFA; --bg-surface: #FFFFFF; --bg-card: #FFFFFF; --bg-hover: #F0F0F0;
+            --border-color: #DBDBDB; --text-main: #000000; --text-sub: #737373;
+            --accent: #0095F6; --gold: #D4A000; --red: #ED4956; --green: #10B981;
+        }
+        html, body { width: 100%; height: 100%; margin: 0; padding: 0; background: #05060A; color: var(--text-main); overflow: hidden; position: fixed; top: 0; left: 0; }
+        .app-frame { width: 100vw; height: 100vh; height: calc(100vh - var(--safe-top) - var(--safe-bottom)); background: var(--bg-app); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        /* HEADER - بدون دکمه لایسنس و تم */
+        .header { height: 44px; padding: 0 16px; display: flex; align-items: center; justify-content: flex-end; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); flex-shrink: 0; z-index: 10; }
+        .header-actions { display: flex; gap: 14px; align-items: center; }
+        .icon-btn { background: none; border: none; color: var(--text-main); font-size: 20px; cursor: pointer; display: flex; align-items: center; padding: 4px; }
+        .content-area { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 60px; }
+        .content-area::-webkit-scrollbar { display: none; }
+        /* STORIES - ردیف اول */
+        .stories-bar { display: flex; gap: 14px; padding: 12px 14px 10px; overflow-x: auto; border-bottom: 1px solid var(--border-color); background: var(--bg-surface); scrollbar-width: none; flex-shrink: 0; }
+        .stories-bar::-webkit-scrollbar { display: none; }
+        .story-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; flex-shrink: 0; }
+        .story-ring { width: 60px; height: 60px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); display: flex; align-items: center; justify-content: center; position: relative; }
+        .story-ring img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg-surface); }
+        .story-title { font-size: 10px; color: var(--text-sub); }
+        .search-row { padding: 8px 14px 10px; background: var(--bg-surface); }
+        .search-box { background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 13px; padding: 8px 14px; display: flex; align-items: center; gap: 8px; }
+        .search-box input { background: transparent; border: none; color: var(--text-main); width: 100%; font-family: 'Vazirmatn', sans-serif; font-size: 13px; outline: none; }
+        .search-box input::placeholder { color: var(--text-sub); font-size: 12px; }
+        .feed-container { padding: 10px 12px 16px; display: flex; flex-direction: column; gap: 14px; }
+        .post-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 18px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        .post-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; }
+        .post-user { display: flex; align-items: center; gap: 8px; }
+        .post-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 14px; overflow: hidden; }
+        .post-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .post-title { font-size: 12px; font-weight: 700; }
+        .post-type { font-size: 9px; color: var(--text-sub); }
+        .post-media { width: 100%; aspect-ratio: 4/3; background: var(--bg-hover); position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
+        .post-media img, .post-media video { width: 100%; height: 100%; object-fit: cover; }
+        .badge-play { position: absolute; width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; }
+        /* ACTION GROUP - فقط بوکمارک در سمت چپ */
+        .post-actions { padding: 8px 14px; display: flex; justify-content: flex-start; align-items: center; }
+        .action-group { display: flex; gap: 14px; align-items: center; font-size: 20px; }
+        .action-group i { color: var(--text-sub); cursor: pointer; }
+        .post-meta-text { padding: 0 14px 10px; font-size: 10.5px; color: var(--text-sub); display: flex; justify-content: space-between; align-items: center; }
+        .explore-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px; }
+        .explore-item { position: relative; aspect-ratio: 1/1; background: var(--bg-card); overflow: hidden; cursor: pointer; }
+        .explore-item img { width: 100%; height: 100%; object-fit: cover; }
+        .explore-type-icon { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.6); padding: 3px 6px; border-radius: 5px; color: #fff; font-size: 12px; }
+        .seen-badge { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.75); color: var(--green); padding: 2px 6px; border-radius: 8px; font-size: 8px; display: flex; align-items: center; gap: 3px; backdrop-filter: blur(4px); }
+        /* BOTTOM NAV - فقط آیکون */
+        .navbar { height: 54px; background: var(--bg-surface); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; z-index: 10; padding-bottom: var(--safe-bottom); position: fixed; bottom: 0; left: 0; right: 0; }
+        .nav-btn { background: none; border: none; color: var(--text-sub); display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: 9px; cursor: pointer; transition: color 0.2s; padding: 4px 12px; }
+        .nav-btn.active { color: var(--text-main); }
+        .nav-btn i { font-size: 24px; }
+        .nav-btn span { display: none; }
+        /* PLAYER */
+        .player-shell { display: flex; flex-direction: column; height: 100%; background: #000; }
+        .player-video { width: 100%; aspect-ratio: 9/16; background: linear-gradient(160deg,#20242f,#0d0f14); position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; touch-action: none; }
+        .player-video video { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .watermark { position: absolute; color: rgba(255,255,255,0.25); font-size: 10px; font-weight: 600; transform: rotate(-18deg); pointer-events: none; text-shadow: 0 1px 3px rgba(0,0,0,0.6); letter-spacing: 0.5px; }
+        .wm1 { top: 18%; right: 10%; } .wm2 { top: 52%; left: 8%; } .wm3 { bottom: 14%; right: 22%; }
+        .secure-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); border: 1px solid rgba(232,169,59,0.3); border-radius: 100px; padding: 4px 10px; font-size: 9px; color: var(--gold); display: flex; align-items: center; gap: 4px; pointer-events: none; }
+        .play-btn-c { width: 52px; height: 52px; border-radius: 50%; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); border: 1.5px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; z-index: 5; cursor: pointer; }
+        .p-top-controls { position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; }
+        .p-back { width: 30px; height: 30px; border-radius: 50%; background: rgba(0,0,0,0.5); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
+        .player-progress-row { position: absolute; bottom: 10px; left: 14px; right: 14px; display: flex; align-items: center; gap: 8px; pointer-events: none; }
+        .player-progress-row .t { font-size: 9px; color: rgba(255,255,255,0.8); }
+        .pbar { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.2); position: relative; pointer-events: auto; }
+        .pbar .fill { position: absolute; right: 0; top: 0; bottom: 0; width: 38%; background: var(--gold); border-radius: 3px; }
+        .pbar .knob { position: absolute; right: 38%; top: 50%; transform: translate(50%,-50%); width: 10px; height: 10px; border-radius: 50%; background: var(--gold); pointer-events: auto; cursor: pointer; }
+        .player-info { padding: 14px 16px; background: var(--bg-surface); flex: 1; overflow-y: auto; }
+        .player-info h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+        .meta-tag { font-size: 10px; color: var(--text-sub); background: var(--bg-hover); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 100px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+        .resume-note { display: flex; align-items: center; gap: 8px; background: rgba(232,169,59,0.08); border: 1px solid rgba(232,169,59,0.2); padding: 8px 12px; border-radius: 10px; font-size: 11px; color: var(--gold); margin-bottom: 12px; }
+        .warn-note { display: flex; align-items: flex-start; gap: 8px; background: rgba(232,93,93,0.06); border: 1px solid rgba(232,93,93,0.15); padding: 8px 12px; border-radius: 10px; font-size: 10px; color: #f0a0a0; line-height: 1.6; }
+        /* AUDIO */
+        .audio-player-mezzo { display: flex; flex-direction: column; height: 100%; background: linear-gradient(160deg, #1a1a2e, #16213e); padding: 20px 18px; }
+        .audio-player-mezzo .artwork { width: 100%; aspect-ratio: 1/1; border-radius: 18px; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; font-size: 50px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+        .audio-player-mezzo .track-info { text-align: center; margin-bottom: 12px; }
+        .audio-player-mezzo .track-info h3 { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+        .audio-player-mezzo .track-info p { font-size: 12px; color: var(--text-sub); }
+        .audio-player-mezzo .progress-section { margin-bottom: 16px; }
+        .audio-player-mezzo .progress-section .time-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub); }
+        .audio-player-mezzo .controls-row { display: flex; justify-content: center; align-items: center; gap: 20px; }
+        .audio-player-mezzo .controls-row .icon-btn { font-size: 24px; color: #fff; background: rgba(255,255,255,0.06); border-radius: 50%; padding: 8px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .audio-player-mezzo .controls-row .icon-btn.play-main { font-size: 28px; background: var(--gold); color: #1a1305; }
+        .audio-player-mezzo .eq-bar { display: flex; justify-content: center; gap: 4px; height: 36px; margin: 12px 0; }
+        .audio-player-mezzo .eq-bar .bar { width: 5px; background: var(--gold); border-radius: 3px; animation: none; }
+        @keyframes eqPulse { 0% { height: 20%; } 100% { height: 100%; } }
+        /* PDF */
+        .pdf-shell { display: flex; flex-direction: column; height: 100%; background: var(--bg-app); }
+        .pdf-page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; overflow: auto; }
+        .pdf-page canvas { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .pdf-bottombar { display: flex; justify-content: space-between; align-items: center; padding: 10px 18px; background: var(--bg-surface); border-top: 1px solid var(--border-color); flex-shrink: 0; }
+        .pdf-page-ind { font-size: 11px; color: var(--text-sub); }
+        /* IMAGE */
+        .image-viewer { display: flex; flex-direction: column; height: 100%; background: #000; }
+        .image-viewer .image-container { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; touch-action: none; }
+        .image-viewer .image-container img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.1s ease; }
+        .image-viewer .image-toolbar { display: flex; justify-content: center; gap: 14px; padding: 10px; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); flex-shrink: 0; }
+        .image-viewer .image-toolbar .icon-btn { color: #fff; font-size: 20px; padding: 5px 10px; border-radius: 8px; background: rgba(255,255,255,0.08); cursor: pointer; }
+        /* IMPORT */
+        .import-wrap { padding: 16px 18px; }
+        .import-hero { text-align: center; padding: 20px 10px 16px; }
+        .import-hero .ic-big { width: 56px; height: 56px; margin: 0 auto 12px; border-radius: 16px; background: rgba(232,169,59,0.12); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 24px; }
+        .import-hero h2 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .import-hero p { font-size: 11.5px; color: var(--text-sub); line-height: 1.8; }
+        .field-label { font-size: 11px; color: var(--text-sub); margin-bottom: 6px; font-weight: 500; }
+        .field-input { background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 11px 14px; font-size: 12px; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .field-input input { background: transparent; border: none; color: var(--text-main); width: 100%; font-family: 'Vazirmatn', sans-serif; font-size: 12px; outline: none; }
+        .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 12px; width: 100%; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 12.5px; cursor: pointer; margin-top: 4px; }
+        .btn-gold { background: var(--gold); color: #1a1305; border: none; border-radius: 12px; padding: 12px; width: 100%; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 12.5px; cursor: pointer; margin-top: 4px; }
+        .btn-ghost { background: transparent; color: var(--text-sub); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; width: 100%; font-family: 'Vazirmatn', sans-serif; font-weight: 600; font-size: 11.5px; margin-top: 8px; cursor: pointer; }
+        .import-list-item { display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+        .import-list-item .thumb-s { width: 38px; height: 38px; border-radius: 8px; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .import-list-item .ii-title { font-size: 11px; font-weight: 600; }
+        .import-list-item .ii-status { font-size: 9.5px; }
+        .status-ok { color: var(--green); }
+        /* PROFILE */
+        .profile-wrap { padding: 16px 18px; padding-bottom: 40px; }
+        .profile-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--bg-hover); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--text-sub); border: 2px solid var(--border-color); }
+        .contact-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+        .contact-section .item { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border-color); }
+        .contact-section .item:last-child { border-bottom: none; }
+        .contact-section .label { font-size: 11px; color: var(--text-sub); }
+        .contact-section .value { font-size: 12px; font-weight: 500; direction: ltr; text-align: left; display: flex; align-items: center; gap: 6px; }
+        .contact-section .copy-btn { font-size: 10px; color: var(--gold); border: 1px solid rgba(232,169,59,0.2); border-radius: 100px; padding: 1px 8px; background: rgba(232,169,59,0.06); cursor: pointer; }
+        .section-box { background: var(--bg-card); padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 14px; }
+        .section-box .field-label { margin-bottom: 4px; }
+        .pay-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+        .pay-card .p-label { font-size: 10.5px; color: var(--text-sub); margin-bottom: 4px; }
+        .pay-card .p-number { font-size: 17px; font-weight: 700; letter-spacing: 1px; color: var(--gold); margin-bottom: 10px; direction: ltr; text-align: right; }
+        .pay-card .p-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub); padding: 7px 0; border-top: 1px solid var(--border-color); }
+        .pay-card .p-row b { color: var(--text-main); font-weight: 600; }
+        .copy-btn-sm { font-size: 10px; color: var(--gold); border: 1px solid rgba(232,169,59,0.2); border-radius: 100px; padding: 4px 10px; background: rgba(232,169,59,0.06); cursor: pointer; }
+        .plan-grid { display: flex; gap: 8px; padding-bottom: 14px; }
+        .plan-card { flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer; }
+        .plan-card.sel { border-color: var(--gold); background: rgba(232,169,59,0.08); }
+        .plan-card .pd { font-size: 10px; color: var(--text-sub); margin-bottom: 3px; }
+        .plan-card .pp { font-size: 13px; font-weight: 700; }
+        .plan-card.sel .pp { color: var(--gold); }
+        /* MODALS */
+        .modal { position: absolute; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 22px; padding: 22px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        .modal-box h3 { font-size: 14px; margin-bottom: 4px; }
+        .modal-box p { font-size: 11px; color: var(--text-sub); line-height: 1.6; }
+        .modal-box .btn { width: 100%; padding: 10px; border-radius: 11px; border: none; font-weight: 700; font-size: 11.5px; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .modal-box .btn-primary { background: var(--accent); color: #fff; }
+        .modal-box .btn-secondary { background: var(--bg-hover); color: var(--text-main); border: 1px solid var(--border-color); }
+        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--bg-card); color: var(--text-main); padding: 10px 20px; border-radius: 12px; border: 1px solid var(--gold); font-size: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; font-weight: 500; max-width: 90%; text-align: center; }
+        .toast.show { opacity: 1; pointer-events: auto; }
+        .saved-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 12px 12px; }
+        .saved-item { background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; }
+        .saved-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+        .saved-item .saved-title { padding: 6px 8px; font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        @media (max-width: 480px) { .app-frame { height: 100vh; } }
+        @media (orientation: landscape) { .player-video { aspect-ratio: 16/9; } }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+    </style>
 </head>
 <body>
 
-<!-- Toast -->
-<div id="toast" class="toast"></div>
+<div class="app-frame" id="app">
+    <div id="toast" class="toast"></div>
 
-<!-- ===== FRAME: DASHBOARD (خانه) ===== -->
-<div class="frame active" id="frame-dashboard">
-  <div class="notch"></div>
-  <div class="screen">
-    <div class="status-row"></div>
-    <div class="topbar">
-      <div class="brand"><div class="brand-mark">ف</div><div class="brand-name">فرادانش پرو</div></div>
-      <div class="icon-btn" onclick="showToast('اعلان‌ها')"><span>🔔</span><div class="dot"></div></div>
+    <!-- HEADER - بدون دکمه لایسنس و تم -->
+    <div class="header">
+        <div class="header-actions">
+            <!-- خالی -->
+        </div>
     </div>
-    <div class="license-pill" id="licensePill">
-      <div class="l-left">
-        <div class="l-icon">✓</div>
-        <div><div class="l-title">لایسنس فعال</div><div class="l-sub" id="licenseSub">دوره‌ی عمومی</div></div>
-      </div>
-      <div class="l-days" id="licenseDays">نامحدود</div>
+
+    <div class="content-area" id="mainArea"></div>
+
+    <!-- BOTTOM NAV -->
+    <div class="navbar">
+        <button class="nav-btn active" id="nav-home" onclick="switchTab('home')"><i data-lucide="home"></i><span>خانه</span></button>
+        <button class="nav-btn" id="nav-explore" onclick="switchTab('explore')"><i data-lucide="search"></i><span>اکسپلوور</span></button>
+        <button class="nav-btn" id="nav-import" onclick="switchTab('import')"><i data-lucide="plus-circle"></i><span>ایمپورت</span></button>
+        <button class="nav-btn" id="nav-profile" onclick="switchTab('profile')"><i data-lucide="user"></i><span>پروفایل</span></button>
     </div>
-    <div class="search-row">
-      <div class="search-box">
-        <span>🔍</span>
-        <input type="text" placeholder="جستجو در محتوای دوره..." id="searchInput" oninput="filterCards()">
-      </div>
+
+    <!-- MODALS -->
+    <div class="modal" id="resumeModal">
+        <div class="modal-box">
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(0,149,246,0.12);color:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;"><i data-lucide="history"></i></div>
+            <h3 id="resumeTitle">ادامه مشاهده فایل</h3>
+            <p id="resumeDesc" style="font-size:11px;color:var(--text-sub);line-height:1.6;">شما قبلاً بخشی از این فایل را مشاهده کرده‌اید.</p>
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:12px 0;font-size:10px;color:var(--text-sub);">
+                <input type="checkbox" id="rememberChoice">
+                <label for="rememberChoice">انتخاب من ذخیره شود</label>
+            </div>
+            <button class="btn btn-primary" onclick="confirmResume(true)">ادامه از زمان قبلی (<span id="resumeTime">00:00</span>)</button>
+            <button class="btn btn-secondary" onclick="confirmResume(false)">شروع مجدد از ابتدا</button>
+        </div>
     </div>
-    <div class="chips" id="chipsContainer">
-      <div class="chip on" data-filter="all">همه</div>
-      <div class="chip" data-filter="video">ویدیو</div>
-      <div class="chip" data-filter="audio">صوت</div>
-      <div class="chip" data-filter="pdf">PDF</div>
-      <div class="chip" data-filter="image">تصویر</div>
-      <div class="chip" data-filter="unseen">دیده‌نشده</div>
+
+    <div class="modal" id="licenseModal">
+        <div class="modal-box">
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(232,93,93,0.12);color:var(--red);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;"><i data-lucide="lock"></i></div>
+            <h3>لایسنس معتبر یافت نشد!</h3>
+            <p style="font-size:11px;color:var(--text-sub);line-height:1.6;">برای پخش فایل‌های غیرنمونه، نیاز به لایسنس معتبر دارید. لطفاً از بخش پروفایل، فایل لایسنس خود را وارد کنید.</p>
+            <button class="btn btn-primary" onclick="switchTab('profile'); closeModal('licenseModal');">رفتن به پروفایل</button>
+            <button class="btn btn-secondary" onclick="closeModal('licenseModal')">متوجه شدم</button>
+        </div>
     </div>
-    <div class="section-label">ادامهٔ مشاهده <span class="more" onclick="showToast('نمایش همه')">مشاهده همه</span></div>
-    <div class="grid" id="gridContinue"></div>
-    <div class="section-label">همهٔ محتوا</div>
-    <div class="grid" id="gridAll"></div>
-  </div>
-  <div class="bottomnav">
-    <div class="navitem on" data-nav="dashboard"><span class="ic">⌂</span>خانه</div>
-    <div class="navitem" data-nav="import"><span class="ic">⤓</span>ایمپورت</div>
-    <div class="navitem" data-nav="profile"><span class="ic">👤</span>پروفایل</div>
-    <div class="navitem" data-nav="payment"><span class="ic">💳</span>پرداخت</div>
-  </div>
+
+    <div class="modal" id="uploadLicenseModal">
+        <div class="modal-box">
+            <h3>وارد کردن فایل لایسنس</h3>
+            <p style="font-size:11px;color:var(--text-sub);line-height:1.6;">فایل لایسنس دریافتی (با پسوند .lba) را انتخاب کنید.<br>توجه: لایسنس فقط ۲ ساعت پس از صدور معتبر است و یک‌بار مصرف می‌باشد.</p>
+            <input type="file" id="licenseFileInput" accept=".lba" style="margin:10px 0;width:100%;">
+            <button class="btn btn-primary" onclick="uploadLicenseFile()">تأیید و فعال‌سازی</button>
+            <button class="btn btn-secondary" onclick="closeModal('uploadLicenseModal')">انصراف</button>
+        </div>
+    </div>
 </div>
 
-<!-- ===== FRAME: IMPORT ===== -->
-<div class="frame" id="frame-import">
-  <div class="notch"></div>
-  <div class="screen">
-    <div class="status-row"></div>
-    <div class="topbar">
-      <div class="brand"><div class="brand-mark">ف</div><div class="brand-name">ایمپورت محتوا</div></div>
-      <div class="icon-btn" onclick="switchTab('dashboard')">✕</div>
-    </div>
-    <div class="import-wrap">
-      <div class="import-hero">
-        <div class="ic-big">🔗</div>
-        <h2>افزودن فایل از لینک</h2>
-        <p>لینک مستقیم یا لینک اشتراک‌گذاری گوگل‌درایو را وارد کنید. فایل با واترمارک اختصاصی شما ذخیره می‌شود.</p>
-      </div>
-      <div class="field-label">لینک فایل</div>
-      <div class="field-input">
-        <input type="text" id="importLink" placeholder="https://drive.google.com/file/d/... یا لینک مستقیم" dir="ltr">
-      </div>
-      <div class="field-label">نام فایل (اختیاری)</div>
-      <div class="field-input">
-        <input type="text" id="importName" placeholder="نام دوره یا فصل">
-      </div>
-      <button class="btn-primary" onclick="importFile()">افزودن به کتابخانه من</button>
-      <div style="height:22px;"></div>
-      <div class="field-label">فایل‌های وارد شده</div>
-      <div id="importList"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== FRAME: PLAYER (Video & Audio) ===== -->
-<div class="frame" id="frame-player">
-  <div class="notch"></div>
-  <div class="screen">
-    <div class="player-shell">
-      <div class="player-video" id="playerContainer">
-        <video id="playerVideo" controls style="display:none; width:100%; height:100%; object-fit:cover;"></video>
-        <audio id="playerAudio" controls style="display:none; width:100%;"></audio>
-        <div id="playerPlaceholder" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:var(--text-3); flex-direction:column; gap:10px;">
-          <span style="font-size:40px;">🎬</span>
-          <span>فایلی برای پخش انتخاب نشده</span>
-        </div>
-        <div class="secure-badge">🔒 پخش امن</div>
-        <div class="watermark wm1" id="wm1">user@example.com</div>
-        <div class="watermark wm2" id="wm2">کد اکانت: FP-0000</div>
-        <div class="watermark wm3" id="wm3">user@example.com</div>
-        <div class="play-btn-c" id="playBtn" onclick="togglePlay()">▶</div>
-        <div class="player-progress-row">
-          <span class="t" id="currentTimeDisplay">۰۰:۰۰</span>
-          <div class="pbar" id="progressBar">
-            <div class="fill" id="progressFill" style="width:0%;"></div>
-            <div class="knob" id="progressKnob" style="right:0%;"></div>
-          </div>
-          <span class="t" id="durationDisplay">۰۰:۰۰</span>
-        </div>
-        <div class="p-top-controls">
-          <div class="p-back" onclick="switchTab('dashboard')">→</div>
-        </div>
-      </div>
-      <div class="player-info">
-        <h3 id="playerTitle">عنوان فایل</h3>
-        <div class="meta-row">
-          <span class="meta-tag" id="playerDuration">۰ دقیقه</span>
-          <span class="meta-tag" id="playerTypeTag">کیفیت ۷۲۰p</span>
-        </div>
-        <div class="resume-note" id="resumeNote">↻ از دقیقهٔ ۰۰:۰۰ ادامه بده</div>
-        <div class="warn-note">⚠ ضبط صفحه، اسکرین‌شات و خروج از صفحه در حین پخش محدود شده است. واترمارک اختصاصی شما قابل مشاهده است.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== FRAME: PDF ===== -->
-<div class="frame" id="frame-pdf">
-  <div class="notch"></div>
-  <div class="screen">
-    <div class="status-row"></div>
-    <div class="topbar">
-      <div class="brand"><div class="p-back" style="position:static; background:transparent; color:var(--text-1); font-size:18px;" onclick="switchTab('dashboard')">→</div></div>
-      <div class="brand-name" style="font-size:13px;" id="pdfTitle">جدول زمان‌بندی واکسن</div>
-      <div class="icon-btn" onclick="showToast('گزینه‌های PDF')" style="font-size:13px;">⋮</div>
-    </div>
-    <div class="pdf-shell">
-      <div class="pdf-page" id="pdfPage">
-        <div class="pwm" id="pdfWatermark">user@example.com</div>
-        <canvas id="pdfCanvas"></canvas>
-      </div>
-      <div class="pdf-bottombar">
-        <span class="pdf-page-ind" id="pdfPageIndicator">صفحه ۱ از ۱</span>
-        <div style="display:flex; gap:8px;">
-          <div class="icon-btn" style="width:30px;height:30px;font-size:13px;" onclick="prevPdfPage()">‹</div>
-          <div class="icon-btn" style="width:30px;height:30px;font-size:13px;" onclick="nextPdfPage()">›</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== FRAME: PAYMENT ===== -->
-<div class="frame" id="frame-payment">
-  <div class="notch"></div>
-  <div class="screen">
-    <div class="status-row"></div>
-    <div class="topbar">
-      <div class="brand"><div class="brand-mark">ف</div><div class="brand-name">تمدید لایسنس</div></div>
-      <div class="icon-btn" onclick="switchTab('dashboard')">✕</div>
-    </div>
-    <div class="section-label" style="padding-top:4px;">مدت لایسنس را انتخاب کنید</div>
-    <div class="plan-grid" id="planGrid">
-      <div class="plan-card" data-days="30" onclick="selectPlan(this)"><div class="pd">۱ ماهه</div><div class="pp">۴۹۰ هزار</div></div>
-      <div class="plan-card sel" data-days="90" onclick="selectPlan(this)"><div class="pd">۳ ماهه</div><div class="pp">۱٬۲۹۰ هزار</div></div>
-      <div class="plan-card" data-days="0" onclick="selectPlan(this)"><div class="pd">نامحدود</div><div class="pp">۳٬۹۰۰ هزار</div></div>
-    </div>
-    <div class="section-label">اطلاعات واریز</div>
-    <div class="pay-card">
-      <div class="p-label">شماره کارت مقصد</div>
-      <div class="p-number" id="cardNumberDisplay">6274 1211 7845 3390</div>
-      <div class="p-row"><span>به نام</span><b>پوریا [نام خانوادگی]</b></div>
-      <div class="p-row"><span>مبلغ قابل پرداخت</span><b id="payAmount">۱٬۲۹۰٬۰۰۰ تومان</b></div>
-      <div style="text-align:left; margin-top:12px;">
-        <span class="copy-btn" onclick="copyCardNumber()">کپی شماره کارت</span>
-      </div>
-    </div>
-    <div style="padding:0 18px;">
-      <div class="field-label">پس از واریز، اطلاعات زیر را ثبت کنید</div>
-      <div class="field-input">
-        <input type="text" id="payLast4" placeholder="۴ رقم آخر کارت مبدا" maxlength="4" dir="ltr">
-      </div>
-      <div class="field-input">
-        <input type="text" id="payAmountInput" placeholder="مبلغ واریزی" dir="ltr">
-      </div>
-      <div class="field-input">
-        <input type="text" id="payTime" placeholder="ساعت واریز" dir="ltr">
-      </div>
-      <button class="btn-primary" onclick="submitPayment()">اعلام واریز و ثبت درخواست</button>
-      <button class="btn-ghost" onclick="switchTab('profile')">وضعیت لایسنس فعلی من</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== FRAME: PROFILE (ورود + تنظیمات) ===== -->
-<div class="frame" id="frame-profile">
-  <div class="notch"></div>
-  <div class="screen">
-    <div class="status-row"></div>
-    <div class="topbar">
-      <div class="brand"><div class="brand-mark">ف</div><div class="brand-name">پروفایل</div></div>
-      <div class="icon-btn" onclick="switchTab('dashboard')">✕</div>
-    </div>
-    <div class="profile-wrap">
-      <div class="profile-avatar" id="profileAvatar">👤</div>
-      <div id="profileInfo" style="text-align:center; margin-bottom:20px;">
-        <div style="font-weight:600; font-size:15px;" id="profileName">کاربر مهمان</div>
-        <div style="font-size:12px; color:var(--text-2);" id="profileEmail">وارد نشده</div>
-      </div>
-
-      <!-- Login Section (Google) -->
-      <div class="login-section" id="loginSection">
-        <div style="font-size:13px; font-weight:600; margin-bottom:6px;">🔐 ورود به حساب</div>
-        <div style="font-size:11px; color:var(--text-3); margin-bottom:10px;">با حساب گوگل وارد شوید تا واترمارک اختصاصی فعال شود.</div>
-        <div id="g_id_onload" data-client_id="575292349672-8k46b28raosei9rc41vttgqugiueekjb.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
-        <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
-        <button class="btn-ghost" style="margin-top:10px; display:none;" id="logoutBtn" onclick="logout()">خروج از حساب</button>
-      </div>
-
-      <!-- License Settings -->
-      <div style="margin-top:20px; background:var(--bg-2); padding:16px; border-radius:14px; border:1px solid var(--line);">
-        <div class="field-label">مدت اعتبار لایسنس (روز)</div>
-        <div class="field-input">
-          <input type="number" id="licenseDaysInput" placeholder="مثلاً 30" value="90">
-        </div>
-        <div class="field-label">ایمیل کاربر (برای واترمارک)</div>
-        <div class="field-input">
-          <input type="email" id="licenseEmailInput" placeholder="user@example.com">
-        </div>
-        <button class="btn-primary" onclick="updateLicense()">ذخیره لایسنس</button>
-        <button class="btn-ghost" onclick="showLicenseStatus()">نمایش وضعیت فعلی</button>
-      </div>
-    </div>
-  </div>
-</div>
-
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-  // ============================================================
-  //  CONSTANTS & GLOBALS
-  // ============================================================
-  const GOOGLE_CLIENT_ID = '575292349672-8k46b28raosei9rc41vttgqugiueekjb.apps.googleusercontent.com';
-  const STORAGE_KEY = 'faradanesh_data';
-  const FILES_STORE = 'files';
+    // ================================================================
+    // STATE
+    // ================================================================
+    const STATE = {
+        theme: 'dark', filter: 'all', library: [], phone: '', license: null,
+        pendingItem: null, currentMediaElement: null, currentFileType: 'video',
+        pdfDoc: null, pdfPageNum: 1, selectedPlanDays: 90, selectedPlanAmount: '۱٬۲۹۰٬۰۰۰',
+        encryptionKey: null, imageZoom: 1, imageRotation: 0, imagePanX: 0, imagePanY: 0,
+        audioPlaylist: [], audioCurrentIndex: 0, isPlaying: false, pdfBookmarks: [],
+        audioElement: null, isAudioPlaying: false, audioShuffleMode: false,
+        audioRepeatMode: false, audioEqActive: false, eqInterval: null,
+        savedItems: []
+    };
 
-  let currentUser = null;
-  let library = [];
-  let pdfDoc = null;
-  let pdfPageNum = 1;
-  let isPlaying = false;
-  let selectedPlanDays = 90;
-  let selectedPlanAmount = '۱٬۲۹۰٬۰۰۰';
-  let currentMediaElement = null;
-  let currentFileType = 'video';
+    // ================================================================
+    // CONSTANTS
+    // ================================================================
+    const SAMPLE_IDS = ['sample_video','sample_audio','sample_pdf','sample_image'];
+    const SAMPLE_FILES = [
+        { id: 'sample_video', name: 'ویدیو نمونه ۱ دقیقه‌ای', type: 'video', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400' },
+        { id: 'sample_audio', name: 'فایل صوتی نمونه', type: 'audio', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400' },
+        { id: 'sample_pdf', name: 'راهنمای نرم‌افزار (PDF)', type: 'pdf', url: 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400' },
+        { id: 'sample_image', name: 'تصویر نمونه', type: 'image', url: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400&q=60', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400' }
+    ];
+    const STORAGE_KEY = 'faradanesh_data';
+    const FILES_STORE = 'files';
+    const HEADER_FINGERPRINT = new Uint8Array([0x46, 0x44, 0x50, 0x52]);
+    const HEADER_LICENSE = new Uint8Array([0x46, 0x44, 0x4C, 0x49]);
+    const XOR_KEY_FP = 0x5A, XOR_KEY_LIC = 0x3C;
+    const PHONE_LEN = 11, HASH_LEN = 32, TS_LEN = 8, EXPIRY_LEN = 8, ISSUED_AT_LEN = 8, VALID_HOURS_LEN = 4, USED_LEN = 1;
+    const LICENSE_VALID_HOURS = 2;
 
-  // ============================================================
-  //  SAMPLE DATA (برای تست)
-  // ============================================================
-  const SAMPLE_FILES = [
-    {
-      id: 'sample_video',
-      name: 'ویدیوی نمونه — آموزش مقدماتی',
-      type: 'video',
-      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      progress: 0,
-      watched: false
-    },
-    {
-      id: 'sample_audio',
-      name: 'فایل صوتی نمونه — پادکست آموزشی',
-      type: 'audio',
-      url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-      progress: 0,
-      watched: false
-    },
-    {
-      id: 'sample_pdf',
-      name: 'PDF نمونه — جزوه آموزشی',
-      type: 'pdf',
-      url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      progress: 0,
-      watched: false
-    },
-    {
-      id: 'sample_image',
-      name: 'تصویر نمونه — نمودار آموزشی',
-      type: 'image',
-      url: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400&q=60',
-      progress: 0,
-      watched: false
+    // ================================================================
+    // HW FINGERPRINT
+    // ================================================================
+    function getHardwareFingerprint() {
+        return new Promise((resolve) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 200; canvas.height = 50;
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#f60';
+            ctx.fillRect(125,1,62,20);
+            ctx.fillStyle = '#069';
+            ctx.fillText('Cwm fjordbank glyphs vext quiz, 😃', 2, 15);
+            ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+            ctx.fillText('Cwm fjordbank glyphs vext quiz, 😃', 4, 17);
+            const canvasData = canvas.toDataURL();
+            const components = [
+                navigator.userAgent, screen.width+'x'+screen.height, screen.colorDepth,
+                new Date().getTimezoneOffset(), navigator.language,
+                navigator.hardwareConcurrency || 4, navigator.deviceMemory || 4, canvasData,
+                (() => { try { const gl = document.createElement('canvas').getContext('webgl'); if (!gl) return ''; const debugInfo = gl.getExtension('WEBGL_debug_renderer_info'); return debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : ''; } catch(e) { return ''; } })()
+            ];
+            const raw = components.join('|||');
+            crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw))
+                .then(hash => { const hex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join(''); resolve(hex); })
+                .catch(() => resolve('fallback_' + Date.now()));
+        });
     }
-  ];
 
-  // ============================================================
-  //  DATA PERSISTENCE
-  // ============================================================
-  function loadData() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const data = JSON.parse(raw);
-        currentUser = data.user || null;
-        // Merge sample files with stored library, but don't override if already exists
-        const storedIds = (data.library || []).map(f => f.id);
-        const samples = SAMPLE_FILES.filter(s => !storedIds.includes(s.id));
-        library = [...(data.library || []), ...samples];
-      } else {
-        // First time: load samples
-        library = SAMPLE_FILES.map(f => ({ ...f }));
-      }
-    } catch(e) { library = SAMPLE_FILES.map(f => ({ ...f })); }
-    // Ensure samples are always present if missing
-    SAMPLE_FILES.forEach(sample => {
-      if (!library.find(f => f.id === sample.id)) {
-        library.push({ ...sample });
-      }
-    });
-  }
-  function saveData() {
-    // Don't save sample files (they are read-only), only user-imported files
-    const userFiles = library.filter(f => !SAMPLE_FILES.some(s => s.id === f.id));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: currentUser, library: userFiles }));
-  }
-
-  function getLicense() {
-    try {
-      const raw = localStorage.getItem('faradanesh_license');
-      return raw ? JSON.parse(raw) : null;
-    } catch(e) { return null; }
-  }
-  function saveLicense(days, email) {
-    const expiry = days === 0 ? 'unlimited' : Date.now() + days * 86400000;
-    localStorage.setItem('faradanesh_license', JSON.stringify({ days, expiry, email }));
-    updateLicenseUI();
-    updateWatermarks();
-  }
-  function updateLicenseUI() {
-    const lic = getLicense();
-    const daysEl = document.getElementById('licenseDays');
-    const subEl = document.getElementById('licenseSub');
-    if (!lic) { daysEl.textContent = 'نامشخص'; subEl.textContent = 'لایسنس فعال نیست'; return; }
-    if (lic.expiry === 'unlimited') {
-      daysEl.textContent = '∞ نامحدود';
-      subEl.textContent = 'دسترسی کامل';
-    } else {
-      const remaining = Math.max(0, Math.floor((lic.expiry - Date.now()) / 86400000));
-      daysEl.textContent = remaining + ' روز مانده';
-      subEl.textContent = lic.email || 'کاربر';
+    // ================================================================
+    // ENCRYPTION
+    // ================================================================
+    async function getEncryptionKey(hwHash) {
+        if (STATE.encryptionKey) return STATE.encryptionKey;
+        const encoder = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(hwHash + 'FaradaneshSalt2024'), 'PBKDF2', false, ['deriveKey']);
+        const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: encoder.encode('FaradaneshSalt'), iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+        STATE.encryptionKey = key; return key;
     }
-  }
-  function updateWatermarks() {
-    const lic = getLicense();
-    const email = lic?.email || 'user@example.com';
-    const code = 'FP-' + (email.slice(0,4).toUpperCase() || '0000');
-    document.querySelectorAll('.watermark').forEach(el => {
-      if (el.id === 'wm1' || el.id === 'wm3') el.textContent = email;
-      if (el.id === 'wm2') el.textContent = 'کد اکانت: ' + code;
-    });
-    document.getElementById('pdfWatermark').textContent = email;
-    // Update profile
-    document.getElementById('profileEmail').textContent = currentUser ? currentUser.email : 'وارد نشده';
-    document.getElementById('profileName').textContent = currentUser ? currentUser.name || 'کاربر' : 'کاربر مهمان';
-    document.getElementById('licenseEmailInput').value = email;
-  }
+    async function encryptBlob(blob, hwHash) {
+        const key = await getEncryptionKey(hwHash);
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const data = await blob.arrayBuffer();
+        const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
+        const result = new Uint8Array(iv.length + encrypted.byteLength);
+        result.set(iv); result.set(new Uint8Array(encrypted), iv.length);
+        return new Blob([result], { type: blob.type });
+    }
+    async function decryptBlob(encryptedBlob, hwHash) {
+        const key = await getEncryptionKey(hwHash);
+        const buffer = await encryptedBlob.arrayBuffer();
+        const data = new Uint8Array(buffer);
+        const iv = data.slice(0, 12);
+        const encrypted = data.slice(12);
+        try {
+            const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encrypted);
+            return new Blob([decrypted], { type: encryptedBlob.type });
+        } catch(e) { throw new Error('رمزگشایی ناموفق'); }
+    }
 
-  // ============================================================
-  //  GOOGLE LOGIN
-  // ============================================================
-  function handleGoogleLogin(response) {
-    try {
-      const payload = parseJwt(response.credential);
-      if (payload?.email) {
-        currentUser = { email: payload.email, name: payload.name, picture: payload.picture, sub: payload.sub };
-        saveData();
-        const lic = getLicense() || {};
-        lic.email = payload.email;
-        saveLicense(lic.days || 90, payload.email);
-        showToast('ورود موفق! خوش آمدید ' + payload.name);
-        updateProfileUI();
+    // ================================================================
+    // PERSISTENCE
+    // ================================================================
+    function loadData() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                const data = JSON.parse(raw);
+                STATE.phone = data.phone || '';
+                STATE.library = data.library || [];
+                STATE.savedItems = data.savedItems || [];
+                const ids = STATE.library.map(f => f.id);
+                SAMPLE_FILES.forEach(s => { if (!ids.includes(s.id)) STATE.library.push({ ...s }); });
+            } else {
+                STATE.library = SAMPLE_FILES.map(f => ({ ...f }));
+                STATE.savedItems = [];
+            }
+        } catch(e) { STATE.library = SAMPLE_FILES.map(f => ({ ...f })); STATE.savedItems = []; }
+        SAMPLE_FILES.forEach(s => {
+            if (!STATE.library.find(f => f.id === s.id)) STATE.library.push({ ...s });
+        });
+        const lic = localStorage.getItem('faradanesh_license');
+        if (lic) {
+            try {
+                STATE.license = JSON.parse(lic);
+                if (STATE.license.issued_at) {
+                    const hoursSince = (Date.now() - STATE.license.issued_at) / 3600000;
+                    if (hoursSince > LICENSE_VALID_HOURS) { STATE.license = null; localStorage.removeItem('faradanesh_license'); }
+                }
+                if (STATE.license && STATE.license.used) { STATE.license = null; localStorage.removeItem('faradanesh_license'); }
+                if (STATE.license && STATE.license.expiry !== 0 && STATE.license.expiry < Date.now()) { STATE.license = null; localStorage.removeItem('faradanesh_license'); }
+            } catch(e) { STATE.license = null; }
+        }
         updateLicenseUI();
         updateWatermarks();
-        renderLibrary();
-      }
-    } catch(e) { showToast('خطا در ورود'); console.error(e); }
-  }
-  function parseJwt(token) {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-  }
-  function logout() {
-    currentUser = null;
-    saveData();
-    showToast('خارج شدید');
-    updateProfileUI();
-    updateWatermarks();
-    renderLibrary();
-  }
-  function updateProfileUI() {
-    const loginSection = document.getElementById('loginSection');
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (currentUser) {
-      loginSection.querySelector('.g_id_signin').style.display = 'none';
-      logoutBtn.style.display = 'block';
-    } else {
-      loginSection.querySelector('.g_id_signin').style.display = 'block';
-      logoutBtn.style.display = 'none';
     }
-    updateWatermarks();
-  }
-
-  // ============================================================
-  //  TAB SWITCHING
-  // ============================================================
-  function switchTab(tabId) {
-    document.querySelectorAll('.frame').forEach(f => f.classList.remove('active'));
-    const target = document.getElementById('frame-' + tabId);
-    if (target) target.classList.add('active');
-    document.querySelectorAll('.navitem').forEach(n => n.classList.remove('on'));
-    const navMap = { dashboard: 0, import: 1, profile: 2, payment: 3 };
-    if (navMap[tabId] !== undefined) {
-      document.querySelectorAll('.navitem')[navMap[tabId]]?.classList.add('on');
+    function saveData() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            phone: STATE.phone,
+            library: STATE.library,
+            savedItems: STATE.savedItems
+        }));
     }
-    if (tabId === 'dashboard') renderLibrary();
-    if (tabId === 'profile') { updateProfileUI(); updateWatermarks(); }
-  }
-
-  // ============================================================
-  //  INDEXEDDB (برای فایل‌های واقعی)
-  // ============================================================
-  function getDb() {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open('FaradaneshDB', 1);
-      req.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains(FILES_STORE)) db.createObjectStore(FILES_STORE, { keyPath: 'id' });
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function storeFile(id, blob, metadata) {
-    const db = await getDb();
-    const tx = db.transaction(FILES_STORE, 'readwrite');
-    tx.objectStore(FILES_STORE).put({ id, blob, metadata });
-    return new Promise(r => tx.oncomplete = r);
-  }
-  async function getFile(id) {
-    const db = await getDb();
-    const tx = db.transaction(FILES_STORE, 'readonly');
-    return new Promise((resolve, reject) => {
-      const req = tx.objectStore(FILES_STORE).get(id);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  // ============================================================
-  //  GOOGLE DRIVE LINK PARSING
-  // ============================================================
-  function parseGoogleDriveLink(link) {
-    let match = link.match(/\/file\/d\/([^/]+)/);
-    if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
-    match = link.match(/id=([^&]+)/);
-    if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
-    match = link.match(/\/d\/([^/]+)/);
-    if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
-    return link;
-  }
-
-  // ============================================================
-  //  IMPORT FILE
-  // ============================================================
-  async function importFile() {
-    let link = document.getElementById('importLink').value.trim();
-    const name = document.getElementById('importName').value.trim() || 'فایل وارد شده';
-    if (!link) { showToast('لطفاً لینک را وارد کنید'); return; }
-    const lic = getLicense();
-    if (!lic || (lic.expiry !== 'unlimited' && lic.expiry < Date.now())) {
-      showToast('لایسنس شما منقضی شده است.');
-      return;
+    function saveLicense(licenseObj) {
+        STATE.license = licenseObj;
+        localStorage.setItem('faradanesh_license', JSON.stringify(licenseObj));
+        updateLicenseUI();
+        updateWatermarks();
     }
-    link = parseGoogleDriveLink(link);
-    const ext = link.split('.').pop().toLowerCase().split('?')[0];
-    let type = 'video';
-    if (['jpg','jpeg','png','gif','webp'].includes(ext)) type = 'image';
-    else if (ext === 'pdf') type = 'pdf';
-    else if (['mp3','wav','ogg','m4a','aac'].includes(ext)) type = 'audio';
-    else if (['mp4','webm','mov','avi','mkv'].includes(ext)) type = 'video';
-    else {
-      try {
-        const head = await fetch(link, { method: 'HEAD' });
-        const ct = head.headers.get('content-type') || '';
-        if (ct.includes('video')) type = 'video';
-        else if (ct.includes('audio')) type = 'audio';
-        else if (ct.includes('pdf')) type = 'pdf';
-        else if (ct.includes('image')) type = 'image';
-      } catch(e) {}
+    function updateLicenseUI() {
+        // فقط در پروفایل نمایش داده می‌شود
     }
-    try {
-      showToast('در حال دانلود...');
-      const res = await fetch(link);
-      if (!res.ok) throw new Error('خطا در دانلود');
-      const blob = await res.blob();
-      const encrypted = await encryptBlob(blob);
-      const id = 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-      await storeFile(id, encrypted, { name, type, progress: 0, watched: false, watermark: lic.email });
-      library.push({ id, name, type, progress: 0, watched: false });
-      saveData();
-      renderLibrary();
-      updateImportList();
-      showToast('فایل با موفقیت وارد شد');
-      document.getElementById('importLink').value = '';
-      document.getElementById('importName').value = '';
-    } catch(e) { showToast('خطا: ' + e.message); console.error(e); }
-  }
-
-  async function encryptBlob(blob) {
-    const key = 0xAA;
-    const buffer = await blob.arrayBuffer();
-    const view = new Uint8Array(buffer);
-    for (let i = 0; i < view.length; i++) view[i] ^= key;
-    return new Blob([view], { type: blob.type });
-  }
-  async function decryptBlob(encryptedBlob) {
-    const key = 0xAA;
-    const buffer = await encryptedBlob.arrayBuffer();
-    const view = new Uint8Array(buffer);
-    for (let i = 0; i < view.length; i++) view[i] ^= key;
-    return new Blob([view], { type: encryptedBlob.type });
-  }
-
-  // ============================================================
-  //  RENDER LIBRARY
-  // ============================================================
-  function renderLibrary() {
-    const filtered = getFilteredItems();
-    const continueItems = filtered.filter(item => item.progress > 0 && item.progress < 100);
-    document.getElementById('gridContinue').innerHTML = continueItems.length ?
-      continueItems.map(item => cardHtml(item)).join('') :
-      '<div style="grid-column:1/-1;text-align:center;color:var(--text-3);padding:20px;">هیچ محتوای ناتمامی وجود ندارد</div>';
-    document.getElementById('gridAll').innerHTML = filtered.length ?
-      filtered.map(item => cardHtml(item)).join('') :
-      '<div style="grid-column:1/-1;text-align:center;color:var(--text-3);padding:20px;">هیچ محتوایی وارد نشده است</div>';
-  }
-  function getFilteredItems() {
-    const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
-    const filter = document.querySelector('#chipsContainer .chip.on')?.dataset.filter || 'all';
-    let items = library.slice();
-    if (search) items = items.filter(i => i.name.toLowerCase().includes(search));
-    if (filter === 'video') items = items.filter(i => i.type === 'video');
-    else if (filter === 'audio') items = items.filter(i => i.type === 'audio');
-    else if (filter === 'pdf') items = items.filter(i => i.type === 'pdf');
-    else if (filter === 'image') items = items.filter(i => i.type === 'image');
-    else if (filter === 'unseen') items = items.filter(i => !i.watched && i.progress === 0);
-    return items;
-  }
-  function cardHtml(item) {
-    const iconMap = { video: '▶', audio: '🎵', pdf: '📄', image: '🖼' };
-    const icon = iconMap[item.type] || '📁';
-    const progress = item.progress || 0;
-    const done = item.watched || progress >= 100;
-    const ring = `<svg class="ring" width="34" height="34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="${88 - (progress/100)*88}"/></svg>`;
-    return `
-      <div class="card" onclick="openItem('${item.id}')">
-        <div class="card-thumb">
-          <div style="width:100%;height:100%;background:linear-gradient(150deg,var(--bg-3),var(--bg-1));display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:28px;">${icon}</div>
-          <div class="type-badge">${icon}</div>
-          ${!done && progress > 0 ? `<div class="ring-wrap">${ring}<div class="ring-pct">${Math.round(progress)}%</div></div>` : ''}
-          ${done ? '<div class="done-badge">✓</div>' : ''}
-        </div>
-        <div class="card-body">
-          <div class="card-title">${item.name}</div>
-          <div class="card-meta">${item.type === 'video' ? 'ویدیو' : item.type === 'audio' ? 'صوت' : item.type === 'pdf' ? 'PDF' : 'تصویر'} ${done ? '· دیده شده' : progress > 0 ? `· ${Math.round(progress)}%` : ''}</div>
-        </div>
-      </div>
-    `;
-  }
-  function filterCards() { renderLibrary(); }
-
-  // ============================================================
-  //  OPEN ITEM
-  // ============================================================
-  async function openItem(id) {
-    const item = library.find(f => f.id === id);
-    if (!item) return;
-    const lic = getLicense();
-    if (!lic || (lic.expiry !== 'unlimited' && lic.expiry < Date.now())) {
-      showToast('لایسنس شما منقضی شده است.');
-      return;
+    function updateWatermarks() {
+        const phone = STATE.license?.phone || STATE.phone || '09120000000';
+        const code = 'FP-' + phone.slice(-4);
+        document.querySelectorAll('.watermark').forEach(el => {
+            if (el.id === 'wm1' || el.id === 'wm3') el.textContent = phone;
+            if (el.id === 'wm2') el.textContent = 'کد اکانت: ' + code;
+        });
+        const pwm = document.getElementById('pdfWatermark');
+        if (pwm) pwm.textContent = phone;
+        const nameEl = document.getElementById('profileName');
+        if (nameEl) nameEl.textContent = STATE.phone || 'شماره ثبت نشده';
+        const phoneEl = document.getElementById('profilePhone');
+        if (phoneEl) phoneEl.textContent = STATE.phone || 'وارد نشده';
+        const inputEl = document.getElementById('phoneInput');
+        if (inputEl) inputEl.value = STATE.phone || '';
     }
-    if (item.type === 'video' || item.type === 'audio') {
-      switchTab('player');
-      await initPlayer(id);
-    } else if (item.type === 'pdf') {
-      await loadPdf(id);
-      switchTab('pdf');
-    } else if (item.type === 'image') {
-      // Check if it's a sample (has url directly) or stored file
-      if (item.url) {
-        window.open(item.url, '_blank');
-      } else {
-        const stored = await getFile(id);
-        if (stored) {
-          const decrypted = await decryptBlob(stored.blob);
-          window.open(URL.createObjectURL(decrypted), '_blank');
+
+    // ================================================================
+    // FINGERPRINT GENERATION
+    // ================================================================
+    async function generateFingerprint() {
+        const phone = document.getElementById('phoneInput')?.value.trim();
+        if (!phone || phone.length < 11) { showToast('لطفاً شماره موبایل معتبر (۱۱ رقمی) وارد کنید.'); return; }
+        STATE.phone = phone;
+        saveData();
+        const hwHash = await getHardwareFingerprint();
+        const timestamp = Date.now();
+        const encoder = new TextEncoder();
+        const phoneBytes = encoder.encode(phone.padEnd(PHONE_LEN, ' '));
+        const hashBytes = new Uint8Array(32);
+        for (let i = 0; i < 32; i++) { hashBytes[i] = parseInt(hwHash.substr(i*2, 2), 16); }
+        const tsBytes = new Uint8Array(8);
+        const view = new DataView(tsBytes.buffer);
+        view.setBigUint64(0, BigInt(timestamp), true);
+        let data = new Uint8Array(4 + PHONE_LEN + HASH_LEN + TS_LEN);
+        data.set(HEADER_FINGERPRINT, 0);
+        data.set(phoneBytes, 4);
+        data.set(hashBytes, 4+PHONE_LEN);
+        data.set(tsBytes, 4+PHONE_LEN+HASH_LEN);
+        for (let i = 0; i < data.length; i++) data[i] ^= XOR_KEY_FP;
+        const blob = new Blob([data], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `fingerprint_${phone}.fpr`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('فایل فینگرپرینت ساخته شد. آن را برای پشتیبان ارسال کنید.');
+    }
+
+    // ================================================================
+    // LICENSE UPLOAD (.lba)
+    // ================================================================
+    async function uploadLicenseFile() {
+        const input = document.getElementById('licenseFileInput');
+        if (!input.files || input.files.length === 0) { showToast('لطفاً فایل لایسنس (.lba) را انتخاب کنید.'); return; }
+        const file = input.files[0];
+        if (!file.name.endsWith('.lba')) { showToast('فایل لایسنس باید با پسوند .lba باشد.'); return; }
+        try {
+            const buffer = await file.arrayBuffer();
+            let data = new Uint8Array(buffer);
+            for (let i = 0; i < data.length; i++) data[i] ^= XOR_KEY_LIC;
+            const header = data.slice(0, 4);
+            if (header.length !== 4 || header[0] !== HEADER_LICENSE[0] || header[1] !== HEADER_LICENSE[1] ||
+                header[2] !== HEADER_LICENSE[2] || header[3] !== HEADER_LICENSE[3]) {
+                showToast('فایل لایسنس نامعتبر است (هدر اشتباه).'); return;
+            }
+            const phoneBytes = data.slice(4, 4+PHONE_LEN);
+            const phone = new TextDecoder().decode(phoneBytes).trim();
+            const hashBytes = data.slice(4+PHONE_LEN, 4+PHONE_LEN+HASH_LEN);
+            const hwHash = Array.from(hashBytes).map(b => b.toString(16).padStart(2,'0')).join('');
+            const expiry = Number(new DataView(data.slice(4+PHONE_LEN+HASH_LEN, 4+PHONE_LEN+HASH_LEN+EXPIRY_LEN).buffer).getBigUint64(0, true));
+            const issued_at = Number(new DataView(data.slice(4+PHONE_LEN+HASH_LEN+EXPIRY_LEN, 4+PHONE_LEN+HASH_LEN+EXPIRY_LEN+ISSUED_AT_LEN).buffer).getBigUint64(0, true));
+            const valid_hours = Number(new DataView(data.slice(4+PHONE_LEN+HASH_LEN+EXPIRY_LEN+ISSUED_AT_LEN, 4+PHONE_LEN+HASH_LEN+EXPIRY_LEN+ISSUED_AT_LEN+VALID_HOURS_LEN).buffer).getUint32(0, true));
+            const used = data[4+PHONE_LEN+HASH_LEN+EXPIRY_LEN+ISSUED_AT_LEN+VALID_HOURS_LEN] === 1;
+            if (!phone || !hwHash || !expiry) { showToast('فایل لایسنس ناقص است.'); return; }
+            const hoursSinceIssued = (Date.now() - issued_at) / 3600000;
+            if (hoursSinceIssued > valid_hours) { showToast('لایسنس منقضی شده است (فقط ۲ ساعت اعتبار دارد).'); return; }
+            if (phone !== STATE.phone) { showToast('شماره موبایل در لایسنس با شماره ثبت شده مطابقت ندارد.'); return; }
+            if (expiry !== 0 && expiry < Date.now()) { showToast('لایسنس منقضی شده است.'); return; }
+            if (used) { showToast('این لایسنس قبلاً استفاده شده است.'); return; }
+            const currentHw = await getHardwareFingerprint();
+            if (hwHash !== currentHw) { showToast('این لایسنس برای دستگاه دیگری صادر شده است.'); return; }
+            const licenseObj = { phone, hwHash, expiry, issued_at, valid_hours, used: true };
+            saveLicense(licenseObj);
+            showToast('لایسنس با موفقیت فعال شد.');
+            closeModal('uploadLicenseModal');
+            renderLibrary();
+            updateWatermarks();
+        } catch(e) { showToast('خطا در خواندن فایل لایسنس: ' + e.message); }
+    }
+
+    // ================================================================
+    // IMPORT FUNCTIONS
+    // ================================================================
+    async function importFileFromLink() {
+        const link = document.getElementById('importLink').value.trim();
+        const name = document.getElementById('importName').value.trim() || 'فایل وارد شده';
+        if (!link) { showToast('لطفاً لینک را وارد کنید'); return; }
+        if (!STATE.license) { showToast('برای وارد کردن فایل، نیاز به لایسنس معتبر دارید.'); openLicenseModal(); return; }
+        const hwHash = STATE.license.hwHash || await getHardwareFingerprint();
+        const parsed = parseGoogleDriveLink(link);
+        let type = 'video';
+        const ext = parsed.split('.').pop().toLowerCase().split('?')[0];
+        if (['jpg','jpeg','png','gif','webp'].includes(ext)) type = 'image';
+        else if (ext === 'pdf') type = 'pdf';
+        else if (['mp3','wav','ogg','m4a','aac'].includes(ext)) type = 'audio';
+        else if (['mp4','webm','mov','avi','mkv'].includes(ext)) type = 'video';
+        else {
+            try {
+                const head = await fetch(parsed, { method: 'HEAD' });
+                const ct = head.headers.get('content-type') || '';
+                if (ct.includes('video')) type = 'video';
+                else if (ct.includes('audio')) type = 'audio';
+                else if (ct.includes('pdf')) type = 'pdf';
+                else if (ct.includes('image')) type = 'image';
+            } catch(e) {}
         }
-      }
+        try {
+            showToast('در حال دانلود و رمزگذاری...');
+            const res = await fetch(parsed);
+            if (!res.ok) throw new Error('خطا در دانلود');
+            const blob = await res.blob();
+            const encrypted = await encryptBlob(blob, hwHash);
+            const id = 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+            await storeFile(id, encrypted, { name, type, progress: 0, watched: false, watermark: STATE.phone });
+            STATE.library.push({ id, name, type, progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400' });
+            saveData();
+            renderLibrary();
+            updateImportList();
+            showToast('فایل با موفقیت وارد و رمزگذاری شد (فرمت .enc)');
+            document.getElementById('importLink').value = '';
+            document.getElementById('importName').value = '';
+        } catch(e) { showToast('خطا: ' + e.message); console.error(e); }
     }
-  }
 
-  // ============================================================
-  //  PLAYER (Video & Audio) - بدون کلیدهای میانبر و عقب/جلو
-  // ============================================================
-  async function initPlayer(fileId) {
-    const videoEl = document.getElementById('playerVideo');
-    const audioEl = document.getElementById('playerAudio');
-    const placeholder = document.getElementById('playerPlaceholder');
-    const playBtn = document.getElementById('playBtn');
-    const titleEl = document.getElementById('playerTitle');
-    const durationEl = document.getElementById('playerDuration');
-    const typeTag = document.getElementById('playerTypeTag');
-    const resumeNote = document.getElementById('resumeNote');
+    async function importFileFromDevice() {
+        const input = document.getElementById('fileInput');
+        if (!input.files || input.files.length === 0) { showToast('لطفاً فایل .enc را انتخاب کنید.'); return; }
+        const file = input.files[0];
+        if (!file.name.endsWith('.enc')) { showToast('فایل باید با پسوند .enc باشد.'); return; }
+        if (!STATE.license) { showToast('برای وارد کردن فایل، نیاز به لایسنس معتبر دارید.'); openLicenseModal(); return; }
+        try {
+            showToast('در حال بررسی و رمزگشایی...');
+            const buffer = await file.arrayBuffer();
+            const blob = new Blob([buffer]);
+            const hwHash = STATE.license.hwHash || await getHardwareFingerprint();
+            let decrypted;
+            try {
+                decrypted = await decryptBlob(blob, hwHash);
+            } catch(e) {
+                showToast('فایل .enc معتبر نیست یا با این دستگاه سازگار نیست.');
+                return;
+            }
+            let type = 'video';
+            const header = new Uint8Array(await decrypted.slice(0, 100).arrayBuffer());
+            const text = new TextDecoder().decode(header);
+            if (text.includes('%PDF')) type = 'pdf';
+            else if (header[0] === 0xFF && header[1] === 0xD8) type = 'image';
+            else if (header[0] === 0x49 && header[1] === 0x44 && header[2] === 0x33) type = 'audio';
+            else if (header[0] === 0x1A && header[1] === 0x45 && header[2] === 0xDF && header[3] === 0xA3) type = 'video';
+            const name = file.name.replace('.enc', '') || 'فایل وارد شده';
+            const id = 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+            await storeFile(id, blob, { name, type, progress: 0, watched: false, watermark: STATE.phone });
+            STATE.library.push({ id, name, type, progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400' });
+            saveData();
+            renderLibrary();
+            updateImportList();
+            showToast('فایل .enc با موفقیت وارد شد');
+            input.value = '';
+        } catch(e) { showToast('خطا در وارد کردن فایل: ' + e.message); }
+    }
 
-    videoEl.style.display = 'none';
-    audioEl.style.display = 'none';
-    placeholder.style.display = 'flex';
-    playBtn.style.display = 'none';
+    function parseGoogleDriveLink(link) {
+        let match = link.match(/\/file\/d\/([^/]+)/);
+        if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
+        match = link.match(/id=([^&]+)/);
+        if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
+        match = link.match(/\/d\/([^/]+)/);
+        if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
+        return link;
+    }
 
-    if (!fileId) return;
+    // ================================================================
+    // INDEXEDDB
+    // ================================================================
+    function getDb() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open('FaradaneshDB', 1);
+            req.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(FILES_STORE)) db.createObjectStore(FILES_STORE, { keyPath: 'id' });
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+    async function storeFile(id, blob, metadata) {
+        const db = await getDb();
+        const tx = db.transaction(FILES_STORE, 'readwrite');
+        tx.objectStore(FILES_STORE).put({ id, blob, metadata });
+        return new Promise(r => tx.oncomplete = r);
+    }
+    async function getFile(id) {
+        const db = await getDb();
+        const tx = db.transaction(FILES_STORE, 'readonly');
+        return new Promise((resolve, reject) => {
+            const req = tx.objectStore(FILES_STORE).get(id);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
 
-    const item = library.find(f => f.id === fileId);
-    if (!item) return;
+    // ================================================================
+    // RENDER LIBRARY
+    // ================================================================
+    function renderLibrary() {
+        const filtered = getFilteredItems();
+        const continueItems = filtered.filter(item => item.progress > 0 && item.progress < 100);
+        const gridCont = document.getElementById('gridContinue');
+        const gridAll = document.getElementById('gridAll');
+        if (gridCont) gridCont.innerHTML = continueItems.length ?
+            continueItems.map(item => cardHtml(item)).join('') :
+            '<div style="grid-column:1/-1;text-align:center;color:var(--text-sub);padding:20px;font-size:12px;">هیچ محتوای ناتمامی وجود ندارد</div>';
+        if (gridAll) gridAll.innerHTML = filtered.length ?
+            filtered.map(item => cardHtml(item)).join('') :
+            '<div style="grid-column:1/-1;text-align:center;color:var(--text-sub);padding:20px;font-size:12px;">هیچ محتوایی وارد نشده است</div>';
 
-    titleEl.textContent = item.name;
-    typeTag.textContent = item.type === 'video' ? 'کیفیت ۷۲۰p' : 'صوت با کیفیت بالا';
+        const savedGrid = document.getElementById('savedGrid');
+        if (savedGrid) {
+            const savedItems = STATE.library.filter(item => STATE.savedItems.includes(item.id));
+            savedGrid.innerHTML = savedItems.length ?
+                savedItems.map(item => `
+                    <div class="saved-item" onclick="openItem('${item.id}')">
+                        <img src="${item.thumb || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400'}" alt="${item.name}">
+                        <div class="saved-title">${item.name}</div>
+                    </div>
+                `).join('') :
+                '<div style="grid-column:1/-1;text-align:center;color:var(--text-sub);padding:20px;font-size:12px;">هیچ آیتمی ذخیره نشده است</div>';
+        }
+    }
 
-    try {
-      let url;
-      let isSample = !!item.url;
-      if (isSample) {
-        url = item.url;
-      } else {
-        const stored = await getFile(fileId);
-        if (!stored) throw new Error('فایل یافت نشد');
-        const decrypted = await decryptBlob(stored.blob);
-        url = URL.createObjectURL(decrypted);
-      }
+    function getFilteredItems() {
+        const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+        const filter = STATE.filter;
+        let items = STATE.library.slice();
+        if (search) items = items.filter(i => i.name.toLowerCase().includes(search));
+        if (filter === 'video') items = items.filter(i => i.type === 'video');
+        else if (filter === 'audio') items = items.filter(i => i.type === 'audio');
+        else if (filter === 'pdf') items = items.filter(i => i.type === 'pdf');
+        else if (filter === 'image') items = items.filter(i => i.type === 'image');
+        else if (filter === 'unseen') items = items.filter(i => !i.watched && i.progress === 0);
+        return items;
+    }
 
-      let mediaEl;
-      if (item.type === 'video') {
-        mediaEl = videoEl;
-        videoEl.style.display = 'block';
-        audioEl.style.display = 'none';
-        videoEl.src = url;
-        mediaEl = videoEl;
-      } else {
-        mediaEl = audioEl;
-        audioEl.style.display = 'block';
-        videoEl.style.display = 'none';
-        audioEl.src = url;
-        mediaEl = audioEl;
-      }
+    function cardHtml(item) {
+        const iconMap = { video: '▶', audio: '🎵', pdf: '📄', image: '🖼' };
+        const icon = iconMap[item.type] || '📁';
+        const progress = item.progress || 0;
+        const thumb = item.thumb || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400';
+        const isSample = SAMPLE_IDS.includes(item.id);
+        const isSaved = STATE.savedItems.includes(item.id);
+        return `
+            <div class="post-card">
+                <div class="post-header">
+                    <div class="post-user">
+                        <div class="post-avatar">${icon}</div>
+                        <div>
+                            <div class="post-title">${item.name}</div>
+                            <div class="post-type">${item.type === 'video' ? 'ویدیو' : item.type === 'audio' ? 'صوت' : item.type === 'pdf' ? 'PDF' : 'تصویر'} ${isSample ? '(نمونه)' : ''}</div>
+                        </div>
+                    </div>
+                    <i data-lucide="more-vertical" style="color:var(--text-sub);width:18px;"></i>
+                </div>
+                <div class="post-media" onclick="openItem('${item.id}')">
+                    <img src="${thumb}" alt="thumb">
+                    <div class="badge-play">${iconMap[item.type] || '📁'}</div>
+                </div>
+                <div class="post-actions">
+                    <div class="action-group">
+                        <i data-lucide="bookmark" onclick="toggleSave('${item.id}')" style="color:${isSaved ? 'var(--gold)' : 'var(--text-sub)'};"></i>
+                    </div>
+                </div>
+                <div class="post-meta-text">
+                    <span>پیشرفت: <b>${Math.round(progress)}%</b></span>
+                    ${progress > 0 ? `<span style="color:var(--green);display:flex;align-items:center;gap:3px;"><i data-lucide="eye" style="width:12px;"></i> ${progress >= 100 ? 'کامل' : Math.round(progress)+'%'}</span>` : ''}
+                </div>
+            </div>
+        `;
+    }
 
-      placeholder.style.display = 'none';
-      playBtn.style.display = 'flex';
-      currentMediaElement = mediaEl;
-      currentFileType = item.type;
-
-      mediaEl.load();
-      mediaEl.currentTime = (item.progress || 0) / 100 * mediaEl.duration || 0;
-      resumeNote.textContent = `↻ از دقیقهٔ ${formatTime(mediaEl.currentTime)} ادامه بده`;
-
-      // Remove all keyboard shortcuts
-      mediaEl.removeEventListener('keydown', preventKeyboard);
-      mediaEl.addEventListener('keydown', preventKeyboard);
-
-      mediaEl.addEventListener('loadedmetadata', () => {
-        durationEl.textContent = Math.round(mediaEl.duration) + ' دقیقه';
-        document.getElementById('durationDisplay').textContent = formatTime(mediaEl.duration);
-        updateProgress();
-      });
-
-      mediaEl.addEventListener('timeupdate', () => {
-        updateProgress();
-        const pct = mediaEl.duration ? (mediaEl.currentTime / mediaEl.duration) * 100 : 0;
-        item.progress = Math.min(100, pct);
-        if (pct >= 99) item.watched = true;
+    function toggleSave(id) {
+        const idx = STATE.savedItems.indexOf(id);
+        if (idx > -1) STATE.savedItems.splice(idx, 1);
+        else STATE.savedItems.push(id);
         saveData();
         renderLibrary();
-        resumeNote.textContent = `↻ از دقیقهٔ ${formatTime(mediaEl.currentTime)} ادامه بده`;
-      });
+    }
 
-      mediaEl.addEventListener('ended', () => {
-        item.watched = true; item.progress = 100; saveData(); renderLibrary();
-        playBtn.textContent = '▶'; isPlaying = false;
-      });
+    function filterCards() { renderLibrary(); }
+    function setFilter(filter) {
+        STATE.filter = filter;
+        renderLibrary();
+    }
 
-      mediaEl.addEventListener('contextmenu', e => e.preventDefault());
-
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden && isPlaying) {
-          showToast('⚠️ خروج از صفحه ممنوع');
-          mediaEl.pause(); playBtn.textContent = '▶'; isPlaying = false;
+    // ================================================================
+    // OPEN ITEM
+    // ================================================================
+    async function openItem(id) {
+        const item = STATE.library.find(f => f.id === id);
+        if (!item) return;
+        const isSample = SAMPLE_IDS.includes(id);
+        if (!isSample) {
+            if (!STATE.license) {
+                showToast('برای پخش این فایل، نیاز به لایسنس معتبر دارید.');
+                openLicenseModal();
+                return;
+            }
+            if (STATE.license.expiry !== 0 && STATE.license.expiry < Date.now()) {
+                showToast('لایسنس منقضی شده است.');
+                return;
+            }
+            const hwHash = await getHardwareFingerprint();
+            if (STATE.license.hwHash && STATE.license.hwHash !== hwHash) {
+                showToast('این لایسنس برای دستگاه دیگری صادر شده است.');
+                return;
+            }
         }
-      });
-
-      playBtn.onclick = togglePlay;
-
-      document.getElementById('progressBar').addEventListener('click', (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        mediaEl.currentTime = ((e.clientX - rect.left) / rect.width) * mediaEl.duration;
-        updateProgress();
-      });
-
-      mediaEl.pause();
-      playBtn.textContent = '▶';
-      isPlaying = false;
-
-    } catch(e) { showToast('خطا: ' + e.message); }
-  }
-
-  function preventKeyboard(e) {
-    e.preventDefault();
-    return false;
-  }
-
-  function togglePlay() {
-    const media = currentMediaElement;
-    const btn = document.getElementById('playBtn');
-    if (!media || !media.src) return;
-    if (media.paused) {
-      media.play();
-      btn.textContent = '⏸';
-      isPlaying = true;
-    } else {
-      media.pause();
-      btn.textContent = '▶';
-      isPlaying = false;
+        STATE.pendingItem = item;
+        if (item.progress > 0 && item.progress < 100 && !isSample) {
+            document.getElementById('resumeTitle').innerText = `ادامه ${item.type === 'video' ? 'ویدیو' : item.type === 'audio' ? 'صوت' : 'فایل'}`;
+            document.getElementById('resumeTime').innerText = item.progress ? Math.round(item.progress)+'%' : '00:00';
+            document.getElementById('resumeModal').classList.add('active');
+        } else {
+            executeLaunchMedia(item, false);
+        }
     }
-  }
 
-  function updateProgress() {
-    const media = currentMediaElement;
-    if (!media || !media.duration) return;
-    const pct = (media.currentTime / media.duration) * 100;
-    document.getElementById('progressFill').style.width = pct + '%';
-    document.getElementById('progressKnob').style.right = pct + '%';
-    document.getElementById('currentTimeDisplay').textContent = formatTime(media.currentTime);
-  }
+    function confirmResume(shouldResume) {
+        const checkbox = document.getElementById('rememberChoice');
+        if (checkbox.checked) {
+            STATE.rememberPlaybackChoice = true;
+            STATE.autoResumePreference = shouldResume;
+        }
+        closeModal('resumeModal');
+        if (STATE.pendingItem) executeLaunchMedia(STATE.pendingItem, shouldResume);
+    }
 
-  function formatTime(sec) {
-    if (!sec || isNaN(sec)) return '۰۰:۰۰';
-    const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
-    return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
-  }
+    // ================================================================
+    // EXECUTE LAUNCH MEDIA
+    // ================================================================
+    async function executeLaunchMedia(item, isResume) {
+        const mainArea = document.getElementById('mainArea');
+        const phone = STATE.license?.phone || STATE.phone || '09120000000';
+        const startNotice = isResume ? `ادامه از ${item.progress ? Math.round(item.progress)+'%' : '00:00'}` : 'شروع از ابتدا';
 
-  // ============================================================
-  //  PDF
-  // ============================================================
-  async function loadPdf(fileId) {
-    const item = library.find(f => f.id === fileId);
-    if (!item) return;
-    const canvas = document.getElementById('pdfCanvas');
-    const ctx = canvas.getContext('2d');
-    document.getElementById('pdfTitle').textContent = item.name;
-    try {
-      let data;
-      if (item.url) {
-        const res = await fetch(item.url);
-        const blob = await res.blob();
-        data = await blob.arrayBuffer();
-      } else {
-        const stored = await getFile(fileId);
-        if (!stored) throw new Error('فایل یافت نشد');
-        const decrypted = await decryptBlob(stored.blob);
-        data = await decrypted.arrayBuffer();
-      }
-      pdfDoc = await pdfjsLib.getDocument({ data }).promise;
-      pdfPageNum = 1;
-      renderPdfPage(pdfDoc, pdfPageNum, canvas, ctx);
-      document.getElementById('pdfPageIndicator').textContent = `صفحه ${pdfPageNum} از ${pdfDoc.numPages}`;
-    } catch(e) { showToast('خطا در PDF: ' + e.message); }
-  }
-  function renderPdfPage(doc, pageNum, canvas, ctx) {
-    doc.getPage(pageNum).then(page => {
-      const viewport = page.getViewport({ scale: 1.5 });
-      canvas.width = viewport.width; canvas.height = viewport.height;
-      page.render({ canvasContext: ctx, viewport }).promise.then(() => {});
+        // VIDEO
+        if (item.type === 'video') {
+            let src = item.url;
+            if (!src) {
+                const stored = await getFile(item.id);
+                if (stored) {
+                    const hwHash = STATE.license?.hwHash || await getHardwareFingerprint();
+                    try {
+                        const decrypted = await decryptBlob(stored.blob, hwHash);
+                        src = URL.createObjectURL(decrypted);
+                    } catch(e) {
+                        showToast('خطا در رمزگشایی فایل: ' + e.message);
+                        return;
+                    }
+                }
+            }
+            if (!src) { showToast('فایل یافت نشد'); return; }
+            mainArea.innerHTML = `
+                <div class="player-shell">
+                    <div class="player-video" id="videoViewport">
+                        <video id="playerVideo" src="${src}" style="width:100%;height:100%;object-fit:contain;display:block;"></video>
+                        <div class="secure-badge">🔒 پخش امن</div>
+                        <div class="watermark wm1" id="wm1">${phone}</div>
+                        <div class="watermark wm2" id="wm2">کد اکانت: FP-${phone.slice(-4)}</div>
+                        <div class="watermark wm3" id="wm3">${phone}</div>
+                        <div class="play-btn-c" id="playBtn" onclick="togglePlay()">▶</div>
+                        <div class="player-progress-row">
+                            <span class="t" id="vCurrent">۰۰:۰۰</span>
+                            <div class="pbar" id="progressBar">
+                                <div class="fill" id="vSeekFill" style="width:0%;"></div>
+                                <div class="knob" id="vSeekKnob" style="right:0%;"></div>
+                            </div>
+                            <span class="t" id="vDuration">۰۰:۰۰</span>
+                        </div>
+                        <div class="p-top-controls">
+                            <div class="p-back" onclick="switchTab('home')">→</div>
+                            <div class="p-back" onclick="togglePipMode()" style="font-size:12px;">📺</div>
+                            <div class="p-back" onclick="toggleFullscreen()" style="font-size:12px;">⛶</div>
+                        </div>
+                        <div style="position:absolute;bottom:50px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;">
+                            <button onclick="stepVideo(-5)" class="play-btn-c" style="width:32px;height:32px;font-size:12px;">-5</button>
+                            <span style="color:#fff;font-size:12px;display:flex;gap:10px;">
+                                <select id="vSpeedSelect" onchange="setVideoSpeed(this.value)" style="background:rgba(0,0,0,0.6);color:#fff;border:1px solid #555;border-radius:4px;">
+                                    <option value="0.5">0.5x</option>
+                                    <option value="1.0" selected>1.0x</option>
+                                    <option value="1.5">1.5x</option>
+                                    <option value="2.0">2.0x</option>
+                                </select>
+                            </span>
+                            <button onclick="stepVideo(5)" class="play-btn-c" style="width:32px;height:32px;font-size:12px;">+5</button>
+                        </div>
+                    </div>
+                    <div class="player-info">
+                        <h3 id="playerTitle">${item.name}</h3>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+                            <span class="meta-tag" id="playerDuration">ویدیو</span>
+                            <span class="meta-tag" onclick="cycleVideoAspect()" style="cursor:pointer;">نسبت</span>
+                            <span class="meta-tag" onclick="toggleVideoLock()" style="cursor:pointer;" id="vLockBtn">🔓</span>
+                        </div>
+                        <div class="resume-note" id="resumeNote">↻ ${startNotice}</div>
+                        <div class="warn-note">⚠ ضبط صفحه، اسکرین‌شات و خروج از صفحه ممنوع.</div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+            initVideoPlayer(item, isResume);
+            return;
+        }
+
+        // AUDIO
+        if (item.type === 'audio') {
+            let src = item.url;
+            if (!src) {
+                const stored = await getFile(item.id);
+                if (stored) {
+                    const hwHash = STATE.license?.hwHash || await getHardwareFingerprint();
+                    try {
+                        const decrypted = await decryptBlob(stored.blob, hwHash);
+                        src = URL.createObjectURL(decrypted);
+                    } catch(e) {
+                        showToast('خطا در رمزگشایی فایل: ' + e.message);
+                        return;
+                    }
+                }
+            }
+            if (!src) { showToast('فایل یافت نشد'); return; }
+            mainArea.innerHTML = `
+                <div class="audio-player-mezzo" id="audioPlayerMezzo">
+                    <div class="artwork">🎵</div>
+                    <div class="track-info">
+                        <h3 id="audioTitle">${item.name}</h3>
+                        <p id="audioArtist">فرادانش</p>
+                    </div>
+                    <div class="progress-section">
+                        <div class="time-row">
+                            <span id="aCurrent">۰۰:۰۰</span>
+                            <span id="aDuration">۰۰:۰۰</span>
+                        </div>
+                        <div class="pbar" id="audioProgressBar" style="margin-top:6px;height:4px;">
+                            <div class="fill" id="aSeekFill" style="width:0%;"></div>
+                            <div class="knob" id="aSeekKnob" style="right:0%;"></div>
+                        </div>
+                    </div>
+                    <div class="eq-bar" id="eqBar">
+                        ${Array(12).fill('<div class="bar"></div>').join('')}
+                    </div>
+                    <div class="controls-row">
+                        <button class="icon-btn" onclick="stepAudio(-5)">⏪</button>
+                        <button class="icon-btn play-main" id="audioPlayBtn" onclick="toggleAudioPlay()">▶</button>
+                        <button class="icon-btn" onclick="stepAudio(5)">⏩</button>
+                    </div>
+                    <div style="display:flex;justify-content:center;gap:14px;margin-top:10px;">
+                        <button class="icon-btn" style="font-size:14px;background:rgba(255,255,255,0.04);padding:4px 10px;border-radius:6px;" onclick="audioShuffle()">🔀</button>
+                        <button class="icon-btn" style="font-size:14px;background:rgba(255,255,255,0.04);padding:4px 10px;border-radius:6px;" onclick="audioRepeat()">🔁</button>
+                        <button class="icon-btn" style="font-size:14px;background:rgba(255,255,255,0.04);padding:4px 10px;border-radius:6px;" onclick="audioEqToggle()">🎛️</button>
+                        <button class="icon-btn" style="font-size:14px;background:rgba(255,255,255,0.04);padding:4px 10px;border-radius:6px;" onclick="switchTab('home')">✕</button>
+                    </div>
+                    <div class="warn-note" style="margin-top:10px;">⚠ ضبط صفحه و اسکرین‌شات ممنوع.</div>
+                </div>
+            `;
+            lucide.createIcons();
+            initAudioPlayer(item, src, isResume);
+            return;
+        }
+
+        // PDF - ابتدا تَگ را فعال کن، سپس PDF را بارگذاری کن
+        if (item.type === 'pdf') {
+            switchTab('pdf');
+            // صبر کن تا DOM رندر شود
+            setTimeout(async () => {
+                await loadPdf(item);
+            }, 100);
+            return;
+        }
+
+        // IMAGE
+        if (item.type === 'image') {
+            let src = item.url;
+            if (!src) {
+                const stored = await getFile(item.id);
+                if (stored) {
+                    const hwHash = STATE.license?.hwHash || await getHardwareFingerprint();
+                    try {
+                        const decrypted = await decryptBlob(stored.blob, hwHash);
+                        src = URL.createObjectURL(decrypted);
+                    } catch(e) {
+                        showToast('خطا در رمزگشایی تصویر');
+                        return;
+                    }
+                }
+            }
+            if (!src) { showToast('فایل یافت نشد'); return; }
+            STATE.imageZoom = 1; STATE.imageRotation = 0; STATE.imagePanX = 0; STATE.imagePanY = 0;
+            mainArea.innerHTML = `
+                <div class="image-viewer" id="imageViewer">
+                    <div class="image-container" id="imageContainer">
+                        <img id="imageDisplay" src="${src}" alt="${item.name}" style="transform: scale(1) rotate(0deg);">
+                        <div class="watermark" style="position:absolute;bottom:70px;right:14px;color:rgba(255,255,255,0.12);font-size:10px;transform:rotate(0);">${phone}</div>
+                    </div>
+                    <div class="image-toolbar">
+                        <button class="icon-btn" onclick="imageZoomOut()"><i data-lucide="minus"></i></button>
+                        <button class="icon-btn" onclick="imageZoomReset()"><i data-lucide="home"></i></button>
+                        <button class="icon-btn" onclick="imageZoomIn()"><i data-lucide="plus"></i></button>
+                        <button class="icon-btn" onclick="imageRotateLeft()"><i data-lucide="rotate-ccw"></i></button>
+                        <button class="icon-btn" onclick="imageRotateRight()"><i data-lucide="rotate-cw"></i></button>
+                        <button class="icon-btn" onclick="switchTab('home')"><i data-lucide="x"></i></button>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+            initImageViewer(src);
+            return;
+        }
+    }
+
+    // ================================================================
+    // VIDEO PLAYER
+    // ================================================================
+    let videoSpeed = 1.0;
+    let isVideoLocked = false;
+    let isDraggingVideo = false;
+    let dragStartX = 0;
+
+    function initVideoPlayer(item, isResume) {
+        const video = document.getElementById('playerVideo');
+        const btn = document.getElementById('playBtn');
+        STATE.currentMediaElement = video;
+        STATE.currentFileType = 'video';
+        video.load();
+        if (isResume && item.progress) {
+            video.currentTime = (item.progress / 100) * video.duration || 0;
+        }
+        video.addEventListener('loadedmetadata', () => {
+            document.getElementById('vDuration').textContent = formatTime(video.duration);
+            updateVideoProgress();
+        });
+        video.addEventListener('timeupdate', () => {
+            updateVideoProgress();
+            const pct = video.duration ? (video.currentTime / video.duration) * 100 : 0;
+            item.progress = Math.min(100, pct);
+            if (pct >= 99) item.watched = true;
+            saveData();
+            renderLibrary();
+            document.getElementById('resumeNote').textContent = `↻ از دقیقهٔ ${formatTime(video.currentTime)} ادامه بده`;
+        });
+        video.addEventListener('ended', () => {
+            item.watched = true; item.progress = 100; saveData(); renderLibrary();
+            btn.textContent = '▶';
+        });
+        video.addEventListener('contextmenu', e => e.preventDefault());
+
+        const viewport = document.getElementById('videoViewport');
+        viewport.addEventListener('touchstart', (e) => {
+            if (isVideoLocked) return;
+            const touch = e.touches[0];
+            const rect = viewport.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const pct = Math.max(0, Math.min(1, x / rect.width));
+            video.currentTime = pct * video.duration;
+            isDraggingVideo = true;
+            dragStartX = x;
+        }, { passive: true });
+        viewport.addEventListener('touchmove', (e) => {
+            if (!isDraggingVideo || isVideoLocked) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = viewport.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const delta = (x - dragStartX) / rect.width;
+            const pct = Math.max(0, Math.min(1, (video.currentTime / video.duration) + delta));
+            video.currentTime = pct * video.duration;
+            dragStartX = x;
+        }, { passive: false });
+        viewport.addEventListener('touchend', () => { isDraggingVideo = false; }, { passive: true });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && !video.paused) {
+                showToast('⚠️ خروج از صفحه ممنوع');
+                video.pause();
+                btn.textContent = '▶';
+            }
+        });
+        document.getElementById('progressBar').addEventListener('click', (e) => {
+            if (isVideoLocked) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
+            updateVideoProgress();
+        });
+        video.pause();
+        btn.textContent = '▶';
+    }
+
+    function togglePlay() {
+        const video = document.getElementById('playerVideo');
+        const btn = document.getElementById('playBtn');
+        if (!video || !video.src) return;
+        if (video.paused) {
+            video.play();
+            btn.textContent = '⏸';
+        } else {
+            video.pause();
+            btn.textContent = '▶';
+        }
+    }
+
+    function stepVideo(sec) {
+        const video = document.getElementById('playerVideo');
+        if (!video) return;
+        video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + sec));
+    }
+
+    function setVideoSpeed(val) {
+        videoSpeed = parseFloat(val);
+        const video = document.getElementById('playerVideo');
+        if (video) video.playbackRate = videoSpeed;
+    }
+
+    function toggleVideoLock() {
+        isVideoLocked = !isVideoLocked;
+        document.getElementById('vLockBtn').textContent = isVideoLocked ? '🔒' : '🔓';
+        showToast(isVideoLocked ? 'قفل کنترل فعال شد' : 'قفل کنترل غیرفعال شد');
+    }
+
+    function cycleVideoAspect() {
+        const video = document.getElementById('playerVideo');
+        if (!video) return;
+        const modes = ['contain', 'cover', 'fill'];
+        let idx = modes.indexOf(video.style.objectFit || 'contain');
+        idx = (idx + 1) % modes.length;
+        video.style.objectFit = modes[idx];
+        showToast(`نسبت: ${modes[idx]}`);
+    }
+
+    function updateVideoProgress() {
+        const video = document.getElementById('playerVideo');
+        if (!video || !video.duration) return;
+        const pct = (video.currentTime / video.duration) * 100;
+        document.getElementById('vSeekFill').style.width = pct + '%';
+        document.getElementById('vSeekKnob').style.right = pct + '%';
+        document.getElementById('vCurrent').textContent = formatTime(video.currentTime);
+    }
+
+    function toggleFullscreen() {
+        const video = document.getElementById('playerVideo');
+        if (!video) return;
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else {
+            const container = document.getElementById('videoViewport');
+            container.requestFullscreen().catch(() => {});
+        }
+    }
+
+    let pipContainer = null;
+    let pipVideo = null;
+    function togglePipMode() {
+        const video = document.getElementById('playerVideo');
+        if (!video) return;
+        if (!pipContainer) {
+            pipContainer = document.createElement('div');
+            pipContainer.style.cssText = 'position:fixed;bottom:70px;right:12px;width:160px;height:90px;background:#000;border:2px solid #333;border-radius:10px;z-index:999;overflow:hidden;display:flex;flex-direction:column;';
+            pipVideo = document.createElement('video');
+            pipVideo.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+            pipVideo.src = video.src;
+            pipVideo.currentTime = video.currentTime;
+            pipVideo.autoplay = true;
+            pipContainer.appendChild(pipVideo);
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '✕';
+            closeBtn.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;';
+            closeBtn.onclick = () => { pipContainer.remove(); pipContainer = null; };
+            pipContainer.appendChild(closeBtn);
+            document.body.appendChild(pipContainer);
+            video.pause();
+            document.getElementById('playBtn').textContent = '▶';
+        } else {
+            pipContainer.remove();
+            pipContainer = null;
+            video.play();
+            document.getElementById('playBtn').textContent = '⏸';
+        }
+    }
+
+    // ================================================================
+    // AUDIO PLAYER
+    // ================================================================
+    function initAudioPlayer(item, src, isResume) {
+        const audio = new Audio(src);
+        STATE.audioElement = audio;
+        STATE.currentMediaElement = audio;
+        STATE.currentFileType = 'audio';
+
+        audio.load();
+        if (isResume && item.progress) {
+            audio.currentTime = (item.progress / 100) * audio.duration || 0;
+        }
+
+        document.getElementById('audioTitle').textContent = item.name;
+        document.getElementById('audioArtist').textContent = 'فرادانش';
+
+        audio.addEventListener('loadedmetadata', () => {
+            document.getElementById('aDuration').textContent = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+            document.getElementById('aSeekFill').style.width = pct + '%';
+            document.getElementById('aSeekKnob').style.right = pct + '%';
+            document.getElementById('aCurrent').textContent = formatTime(audio.currentTime);
+            item.progress = Math.min(100, pct);
+            if (pct >= 99) item.watched = true;
+            saveData();
+            renderLibrary();
+        });
+
+        audio.addEventListener('ended', () => {
+            if (STATE.audioRepeatMode) {
+                audio.currentTime = 0;
+                audio.play();
+            } else {
+                audioNext();
+            }
+        });
+
+        audio.addEventListener('contextmenu', e => e.preventDefault());
+
+        document.getElementById('audioProgressBar').addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+        });
+
+        if (isResume && item.progress) {
+            audio.currentTime = (item.progress / 100) * audio.duration || 0;
+        }
+        audio.pause();
+        document.getElementById('audioPlayBtn').textContent = '▶';
+        STATE.isAudioPlaying = false;
+        startEqAnimation();
+
+        STATE.audioPlaylist = STATE.library.filter(f => f.type === 'audio');
+        STATE.audioCurrentIndex = STATE.audioPlaylist.findIndex(f => f.id === item.id);
+        if (STATE.audioCurrentIndex === -1) STATE.audioCurrentIndex = 0;
+    }
+
+    function toggleAudioPlay() {
+        const audio = STATE.audioElement;
+        const btn = document.getElementById('audioPlayBtn');
+        if (!audio || !audio.src) return;
+        if (audio.paused) {
+            audio.play();
+            btn.textContent = '⏸';
+            STATE.isAudioPlaying = true;
+            startEqAnimation();
+        } else {
+            audio.pause();
+            btn.textContent = '▶';
+            STATE.isAudioPlaying = false;
+            stopEqAnimation();
+        }
+    }
+
+    function stepAudio(sec) {
+        const audio = STATE.audioElement;
+        if (!audio) return;
+        audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + sec));
+    }
+
+    function audioPrev() {
+        if (STATE.audioPlaylist.length === 0) return;
+        STATE.audioCurrentIndex = (STATE.audioCurrentIndex - 1 + STATE.audioPlaylist.length) % STATE.audioPlaylist.length;
+        const item = STATE.audioPlaylist[STATE.audioCurrentIndex];
+        if (item) openItem(item.id);
+    }
+
+    function audioNext() {
+        if (STATE.audioPlaylist.length === 0) return;
+        if (STATE.audioShuffleMode) {
+            STATE.audioCurrentIndex = Math.floor(Math.random() * STATE.audioPlaylist.length);
+        } else {
+            STATE.audioCurrentIndex = (STATE.audioCurrentIndex + 1) % STATE.audioPlaylist.length;
+        }
+        const item = STATE.audioPlaylist[STATE.audioCurrentIndex];
+        if (item) openItem(item.id);
+    }
+
+    function audioShuffle() {
+        STATE.audioShuffleMode = !STATE.audioShuffleMode;
+        showToast(STATE.audioShuffleMode ? '🔀 شافل فعال' : '🔀 شافل غیرفعال');
+    }
+
+    function audioRepeat() {
+        STATE.audioRepeatMode = !STATE.audioRepeatMode;
+        showToast(STATE.audioRepeatMode ? '🔁 تکرار فعال' : '🔁 تکرار غیرفعال');
+    }
+
+    function audioEqToggle() {
+        STATE.audioEqActive = !STATE.audioEqActive;
+        const bars = document.querySelectorAll('.eq-bar .bar');
+        bars.forEach(bar => {
+            if (STATE.audioEqActive) {
+                bar.style.animation = `eqPulse ${0.4 + Math.random() * 0.6}s ease-in-out infinite alternate`;
+            } else {
+                bar.style.animation = 'none';
+                bar.style.height = '30%';
+            }
+        });
+        showToast(STATE.audioEqActive ? '🎛️ اکولایزر فعال' : '🎛️ اکولایزر غیرفعال');
+    }
+
+    let eqInterval = null;
+    function startEqAnimation() {
+        if (eqInterval) return;
+        const bars = document.querySelectorAll('.eq-bar .bar');
+        eqInterval = setInterval(() => {
+            if (!STATE.isAudioPlaying) return;
+            bars.forEach(bar => {
+                if (STATE.audioEqActive) {
+                    bar.style.height = (20 + Math.random() * 80) + '%';
+                } else {
+                    bar.style.height = (30 + Math.random() * 40) + '%';
+                }
+            });
+        }, 150);
+    }
+    function stopEqAnimation() {
+        if (eqInterval) {
+            clearInterval(eqInterval);
+            eqInterval = null;
+        }
+        const bars = document.querySelectorAll('.eq-bar .bar');
+        bars.forEach(bar => { bar.style.height = '30%'; });
+    }
+
+    // ================================================================
+    // IMAGE VIEWER
+    // ================================================================
+    let imageSrc = '';
+    let imageZoom = 1, imageRotation = 0, imagePanX = 0, imagePanY = 0;
+    let isDraggingImg = false, dragStartXImg = 0, dragStartYImg = 0;
+
+    function initImageViewer(src) {
+        imageSrc = src;
+        imageZoom = 1; imageRotation = 0; imagePanX = 0; imagePanY = 0;
+        updateImageTransform();
+        const container = document.getElementById('imageContainer');
+        const img = document.getElementById('imageDisplay');
+
+        container.addEventListener('mousedown', (e) => {
+            isDraggingImg = true;
+            dragStartXImg = e.clientX - imagePanX;
+            dragStartYImg = e.clientY - imagePanY;
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isDraggingImg) return;
+            imagePanX = e.clientX - dragStartXImg;
+            imagePanY = e.clientY - dragStartYImg;
+            updateImageTransform();
+        });
+        document.addEventListener('mouseup', () => { isDraggingImg = false; });
+
+        let touchStartX = 0, touchStartY = 0;
+        container.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX - imagePanX;
+            touchStartY = touch.clientY - imagePanY;
+            isDraggingImg = true;
+        }, { passive: true });
+        container.addEventListener('touchmove', (e) => {
+            if (!isDraggingImg) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            imagePanX = touch.clientX - touchStartX;
+            imagePanY = touch.clientY - touchStartY;
+            updateImageTransform();
+        }, { passive: false });
+        container.addEventListener('touchend', () => { isDraggingImg = false; }, { passive: true });
+
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            imageZoom = Math.max(0.1, Math.min(10, imageZoom + delta));
+            updateImageTransform();
+        }, { passive: false });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '+' || e.key === '=') { imageZoomIn(); e.preventDefault(); }
+            if (e.key === '-') { imageZoomOut(); e.preventDefault(); }
+            if (e.key === 'r' || e.key === 'R') { imageRotateRight(); e.preventDefault(); }
+            if (e.key === 'Escape') { switchTab('home'); e.preventDefault(); }
+        });
+    }
+
+    function updateImageTransform() {
+        const img = document.getElementById('imageDisplay');
+        if (!img) return;
+        img.style.transform = `scale(${imageZoom}) rotate(${imageRotation}deg) translate(${imagePanX}px, ${imagePanY}px)`;
+    }
+
+    function imageZoomIn() { imageZoom = Math.min(10, imageZoom + 0.25); updateImageTransform(); }
+    function imageZoomOut() { imageZoom = Math.max(0.1, imageZoom - 0.25); updateImageTransform(); }
+    function imageZoomReset() { imageZoom = 1; imagePanX = 0; imagePanY = 0; updateImageTransform(); }
+    function imageRotateLeft() { imageRotation -= 90; updateImageTransform(); }
+    function imageRotateRight() { imageRotation += 90; updateImageTransform(); }
+
+    // ================================================================
+    // PDF
+    // ================================================================
+    async function loadPdf(item) {
+        const canvas = document.getElementById('pdfCanvas');
+        const ctx = canvas.getContext('2d');
+        document.getElementById('pdfTitle').textContent = item.name || 'PDF';
+        try {
+            let data;
+            if (item.url) {
+                const res = await fetch(item.url);
+                const blob = await res.blob();
+                data = await blob.arrayBuffer();
+            } else {
+                const stored = await getFile(item.id);
+                if (!stored) throw new Error('فایل یافت نشد');
+                const hwHash = STATE.license?.hwHash || await getHardwareFingerprint();
+                const decrypted = await decryptBlob(stored.blob, hwHash);
+                data = await decrypted.arrayBuffer();
+            }
+            STATE.pdfDoc = await pdfjsLib.getDocument({ data }).promise;
+            STATE.pdfPageNum = 1;
+            renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum, canvas, ctx);
+            document.getElementById('pdfPageIndicator').textContent = `صفحه ${STATE.pdfPageNum} از ${STATE.pdfDoc.numPages}`;
+        } catch(e) {
+            showToast('خطا در بارگذاری PDF: ' + e.message);
+            console.error('PDF Error:', e);
+        }
+    }
+
+    function renderPdfPage(doc, pageNum, canvas, ctx) {
+        doc.getPage(pageNum).then(page => {
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.width = viewport.width; canvas.height = viewport.height;
+            page.render({ canvasContext: ctx, viewport }).promise.then(() => {});
+        }).catch(e => {
+            showToast('خطا در رندر PDF: ' + e.message);
+        });
+    }
+
+    function nextPdfPage() {
+        if (!STATE.pdfDoc || STATE.pdfPageNum >= STATE.pdfDoc.numPages) return;
+        STATE.pdfPageNum++;
+        const canvas = document.getElementById('pdfCanvas');
+        renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum, canvas, canvas.getContext('2d'));
+        document.getElementById('pdfPageIndicator').textContent = `صفحه ${STATE.pdfPageNum} از ${STATE.pdfDoc.numPages}`;
+    }
+
+    function prevPdfPage() {
+        if (!STATE.pdfDoc || STATE.pdfPageNum <= 1) return;
+        STATE.pdfPageNum--;
+        const canvas = document.getElementById('pdfCanvas');
+        renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum, canvas, canvas.getContext('2d'));
+        document.getElementById('pdfPageIndicator').textContent = `صفحه ${STATE.pdfPageNum} از ${STATE.pdfDoc.numPages}`;
+    }
+
+    function pdfSearch() {
+        const term = prompt('متن مورد جستجو را وارد کنید:');
+        if (!term) return;
+        const page = STATE.pdfDoc?.getPage(STATE.pdfPageNum);
+        if (page) {
+            page.getTextContent().then(textContent => {
+                const found = textContent.items.some(item => item.str.includes(term));
+                showToast(found ? '✅ متن یافت شد' : '❌ متن یافت نشد');
+            });
+        }
+    }
+
+    function pdfBookmark() {
+        const name = prompt('نام بوکمارک:');
+        if (!name) return;
+        STATE.pdfBookmarks.push({ page: STATE.pdfPageNum, name, timestamp: Date.now() });
+        localStorage.setItem('pdf_bookmarks', JSON.stringify(STATE.pdfBookmarks));
+        showToast(`📑 بوکمارک در صفحه ${STATE.pdfPageNum} ذخیره شد`);
+    }
+
+    // ================================================================
+    // PAYMENT
+    // ================================================================
+    function selectPlan(el) {
+        document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('sel'));
+        el.classList.add('sel');
+        STATE.selectedPlanDays = parseInt(el.dataset.days);
+        STATE.selectedPlanAmount = el.querySelector('.pp')?.textContent || '۰';
+        document.getElementById('payAmount').textContent = STATE.selectedPlanAmount;
+    }
+
+    function copyCardNumber() {
+        const num = document.getElementById('cardNumberDisplay').textContent.replace(/\s/g, '');
+        navigator.clipboard?.writeText(num).then(() => showToast('کپی شد'));
+    }
+
+    function submitPayment() {
+        const last4 = document.getElementById('payLast4').value.trim();
+        if (!last4 || last4.length !== 4) { showToast('۴ رقم آخر کارت را وارد کنید'); return; }
+        const amount = document.getElementById('payAmountInput').value.trim() || STATE.selectedPlanAmount;
+        const time = document.getElementById('payTime').value.trim() || 'اکنون';
+        const body = encodeURIComponent(
+            `۴ رقم آخر مبدا: ${last4}\nمبلغ: ${amount}\nساعت: ${time}\nشماره موبایل: ${STATE.phone || 'نامشخص'}\nمدت: ${STATE.selectedPlanDays === 0 ? 'نامحدود' : STATE.selectedPlanDays + ' روز'}`
+        );
+        window.location.href = `mailto:admin@example.com?subject=درخواست تمدید لایسنس&body=${body}`;
+        showToast('ایمیل درخواست ارسال شد. پس از تأیید، فایل لایسنس (.lba) برای شما ارسال خواهد شد.');
+    }
+
+    // ================================================================
+    // TAB SWITCHING
+    // ================================================================
+    function switchTab(tab) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        const navMap = { home: 'nav-home', explore: 'nav-explore', import: 'nav-import', profile: 'nav-profile' };
+        if (navMap[tab]) document.getElementById(navMap[tab]).classList.add('active');
+
+        const mainArea = document.getElementById('mainArea');
+        if (tab === 'home') renderHome();
+        else if (tab === 'explore') renderExplore();
+        else if (tab === 'import') renderImport();
+        else if (tab === 'profile') renderProfile();
+        else if (tab === 'pdf') renderPdfView();
+        else if (tab === 'payment') renderPayment();
+        lucide.createIcons();
+    }
+
+    function renderHome() {
+        const mainArea = document.getElementById('mainArea');
+        mainArea.innerHTML = `
+            <!-- STORIES - ردیف اول -->
+            <div class="stories-bar" id="chipsContainer">
+                <div class="story-item active-filter" onclick="setFilter('all')">
+                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&h=200&fit=crop&crop=center" alt="همه"></div>
+                    <div class="story-title">همه</div>
+                </div>
+                <div class="story-item" onclick="setFilter('video')">
+                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1605648912125-6c29f71e9c06?w=200&h=200&fit=crop&crop=center" alt="ویدیو"></div>
+                    <div class="story-title">ویدیو</div>
+                </div>
+                <div class="story-item" onclick="setFilter('audio')">
+                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=crop&crop=center" alt="صوت"></div>
+                    <div class="story-title">صوت</div>
+                </div>
+                <div class="story-item" onclick="setFilter('pdf')">
+                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=200&h=200&fit=crop&crop=center" alt="PDF"></div>
+                    <div class="story-title">PDF</div>
+                </div>
+                <div class="story-item" onclick="setFilter('image')">
+                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=200&h=200&fit=crop&crop=center" alt="تصویر"></div>
+                    <div class="story-title">تصویر</div>
+                </div>
+                <div class="story-item" onclick="setFilter('unseen')">
+                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=200&h=200&fit=crop&crop=center" alt="دیده‌نشده"></div>
+                    <div class="story-title">دیده‌نشده</div>
+                </div>
+            </div>
+            <div class="search-row">
+                <div class="search-box">
+                    <i data-lucide="search"></i>
+                    <input type="text" placeholder="جستجوی فایل در فرادانش" id="searchInput" oninput="filterCards()">
+                </div>
+            </div>
+            <div style="padding:6px 14px 2px;font-weight:700;font-size:13px;">ادامهٔ مشاهده</div>
+            <div class="feed-container" id="gridContinue"></div>
+            <div style="padding:6px 14px 2px;font-weight:700;font-size:13px;">همهٔ محتوا</div>
+            <div class="feed-container" id="gridAll"></div>
+            <div style="padding:6px 14px 2px;font-weight:700;font-size:13px;">ذخیره‌شده‌ها</div>
+            <div class="saved-grid" id="savedGrid"></div>
+        `;
+        lucide.createIcons();
+        renderLibrary();
+    }
+
+    function renderExplore() {
+        const mainArea = document.getElementById('mainArea');
+        mainArea.innerHTML = `
+            <div style="padding:12px 12px 6px;font-weight:800;font-size:14px;display:flex;align-items:center;gap:6px;">
+                <i data-lucide="search" style="color:var(--accent);"></i> اکسپلوور فایل‌ها
+            </div>
+            <div class="explore-grid">
+                ${STATE.library.map(item => `
+                    <div class="explore-item" onclick="openItem('${item.id}')">
+                        <img src="${item.thumb || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400'}" alt="thumb">
+                        <div class="explore-type-icon">${item.type === 'video' ? '▶' : item.type === 'audio' ? '🎵' : item.type === 'pdf' ? '📄' : '🖼'}</div>
+                        ${item.progress > 0 ? `<div class="seen-badge"><i data-lucide="eye" style="width:10px;height:10px;"></i> ${Math.round(item.progress)}%</div>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        lucide.createIcons();
+    }
+
+    function renderImport() {
+        const mainArea = document.getElementById('mainArea');
+        mainArea.innerHTML = `
+            <div class="import-wrap">
+                <div class="import-hero">
+                    <div class="ic-big">🔗</div>
+                    <h2>ایمپورت فایل</h2>
+                    <p>فایل‌های با فرمت .enc را از لینک یا حافظه دستگاه وارد کنید.</p>
+                </div>
+                <div class="section-box" style="margin-bottom:14px;">
+                    <div class="field-label">لینک فایل (گوگل‌درایو یا مستقیم)</div>
+                    <div class="field-input">
+                        <input type="text" id="importLink" placeholder="https://drive.google.com/file/d/..." dir="ltr">
+                    </div>
+                    <div class="field-label">نام فایل (اختیاری)</div>
+                    <div class="field-input">
+                        <input type="text" id="importName" placeholder="نام دوره یا فصل">
+                    </div>
+                    <button class="btn-primary" onclick="importFileFromLink()">وارد کردن از لینک</button>
+                </div>
+                <div class="section-box">
+                    <div class="field-label">آپلود فایل .enc از حافظه</div>
+                    <div class="field-input" style="justify-content:center;padding:8px;">
+                        <input type="file" id="fileInput" accept=".enc" style="width:100%;">
+                    </div>
+                    <button class="btn-gold" onclick="importFileFromDevice()">وارد کردن فایل .enc</button>
+                </div>
+                <div style="height:12px;"></div>
+                <div class="field-label">فایل‌های وارد شده (.enc)</div>
+                <div id="importList"></div>
+            </div>
+        `;
+        lucide.createIcons();
+        updateImportList();
+    }
+
+    function renderProfile() {
+        const mainArea = document.getElementById('mainArea');
+        const lic = STATE.license;
+        const phone = lic?.phone || STATE.phone || '';
+        const isLicensed = !!lic;
+        mainArea.innerHTML = `
+            <div class="profile-wrap">
+                <div class="profile-avatar">👤</div>
+                <div style="text-align:center;margin-bottom:16px;">
+                    <div style="font-weight:600;font-size:14px;" id="profileName">${phone ? 'کاربر ' + phone : 'کاربر مهمان'}</div>
+                    <div style="font-size:11px;color:var(--text-sub);" id="profilePhone">${phone || 'وارد نشده'}</div>
+                    <div style="font-size:10px;color:${isLicensed ? 'var(--green)' : 'var(--red)'};margin-top:3px;">
+                        ${isLicensed ? '✅ لایسنس فعال' : '❌ لایسنس غیرفعال'}
+                        ${isLicensed && lic.expiry !== 0 ? ` (${Math.max(0, Math.floor((lic.expiry - Date.now())/86400000))} روز مانده)` : ''}
+                    </div>
+                </div>
+                <!-- تنظیمات تم -->
+                <div class="section-box">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:12px;font-weight:500;">🌓 حالت نمایش</span>
+                        <button class="btn-ghost" onclick="toggleTheme()" style="width:auto;padding:6px 16px;margin:0;">
+                            ${STATE.theme === 'dark' ? '☀️ روشن' : '🌙 تاریک'}
+                        </button>
+                    </div>
+                </div>
+                <div class="section-box">
+                    <div class="field-label">شماره موبایل</div>
+                    <div class="field-input">
+                        <input type="text" id="phoneInput" placeholder="۰۹۱۲۱۲۳۴۵۶۷" value="${phone}" maxlength="11" dir="ltr">
+                    </div>
+                    <button class="btn-gold" onclick="generateFingerprint()">📱 ساخت فایل فینگرپرینت (.fpr)</button>
+                </div>
+                <div class="section-box">
+                    <div class="field-label">وارد کردن فایل لایسنس</div>
+                    <button class="btn-ghost" onclick="openUploadLicenseModal()">📂 انتخاب فایل .lba</button>
+                    <button class="btn-ghost" onclick="showLicenseStatus()" style="margin-top:4px;">نمایش وضعیت لایسنس</button>
+                </div>
+                <div class="contact-section">
+                    <div style="font-weight:600;font-size:13px;margin-bottom:6px;">📞 اطلاعات تماس پشتیبانی</div>
+                    <div class="item"><span class="label">📧 ایمیل</span><span class="value">support@example.com <span class="copy-btn" onclick="copyText('support@example.com')">کپی</span></span></div>
+                    <div class="item"><span class="label">📱 شماره تماس</span><span class="value">۰۹۱۲۱۲۳۴۵۶۷ <span class="copy-btn" onclick="copyText('09121234567')">کپی</span></span></div>
+                    <div class="item"><span class="label">📱 تلگرام</span><span class="value">@FaradaneshSupport <span class="copy-btn" onclick="copyText('@FaradaneshSupport')">کپی</span></span></div>
+                    <div class="item"><span class="label">📱 روبیکا</span><span class="value">@FaradaneshSupport <span class="copy-btn" onclick="copyText('@FaradaneshSupport')">کپی</span></span></div>
+                </div>
+                <button class="btn-primary" onclick="switchTab('payment')" style="background:var(--gold);color:#1A1305;">💳 تمدید / خرید لایسنس</button>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+
+    function renderPayment() {
+        const mainArea = document.getElementById('mainArea');
+        mainArea.innerHTML = `
+            <div style="padding:16px;">
+                <div style="font-weight:700;font-size:13px;padding:4px 0;">انتخاب مدت لایسنس</div>
+                <div class="plan-grid" id="planGrid">
+                    <div class="plan-card" data-days="30" onclick="selectPlan(this)"><div class="pd">۱ ماهه</div><div class="pp">۴۹۰ هزار</div></div>
+                    <div class="plan-card sel" data-days="90" onclick="selectPlan(this)"><div class="pd">۳ ماهه</div><div class="pp">۱٬۲۹۰ هزار</div></div>
+                    <div class="plan-card" data-days="0" onclick="selectPlan(this)"><div class="pd">نامحدود</div><div class="pp">۳٬۹۰۰ هزار</div></div>
+                </div>
+                <div style="font-weight:700;font-size:13px;padding:4px 0;">اطلاعات واریز</div>
+                <div class="pay-card">
+                    <div class="p-label">شماره کارت مقصد</div>
+                    <div class="p-number" id="cardNumberDisplay">6274 1211 7845 3390</div>
+                    <div class="p-row"><span>به نام</span><b>پوریا [نام خانوادگی]</b></div>
+                    <div class="p-row"><span>مبلغ قابل پرداخت</span><b id="payAmount">۱٬۲۹۰٬۰۰۰ تومان</b></div>
+                    <div style="text-align:left;margin-top:10px;">
+                        <span class="copy-btn-sm" onclick="copyCardNumber()">کپی شماره کارت</span>
+                    </div>
+                </div>
+                <div class="field-label">پس از واریز، اطلاعات زیر را ثبت کنید</div>
+                <div class="field-input">
+                    <input type="text" id="payLast4" placeholder="۴ رقم آخر کارت مبدا" maxlength="4" dir="ltr">
+                </div>
+                <div class="field-input">
+                    <input type="text" id="payAmountInput" placeholder="مبلغ واریزی" dir="ltr">
+                </div>
+                <div class="field-input">
+                    <input type="text" id="payTime" placeholder="ساعت واریز" dir="ltr">
+                </div>
+                <button class="btn-primary" onclick="submitPayment()">اعلام واریز و دریافت لایسنس</button>
+                <button class="btn-ghost" onclick="switchTab('profile')">بازگشت به پروفایل</button>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+
+    function renderPdfView() {
+        const mainArea = document.getElementById('mainArea');
+        mainArea.innerHTML = `
+            <div class="pdf-shell">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;background:var(--bg-surface);border-bottom:1px solid var(--border-color);">
+                    <div class="p-back" onclick="switchTab('home')" style="position:static;background:transparent;color:var(--text-main);font-size:16px;cursor:pointer;">→</div>
+                    <div style="font-size:12px;font-weight:600;" id="pdfTitle">PDF</div>
+                    <div style="display:flex;gap:6px;">
+                        <button class="icon-btn" onclick="pdfSearch()" style="font-size:13px;"><i data-lucide="search"></i></button>
+                        <button class="icon-btn" onclick="pdfBookmark()" style="font-size:13px;"><i data-lucide="bookmark"></i></button>
+                    </div>
+                </div>
+                <div class="pdf-page">
+                    <canvas id="pdfCanvas"></canvas>
+                    <div class="pwm" id="pdfWatermark">09120000000</div>
+                </div>
+                <div class="pdf-bottombar">
+                    <span class="pdf-page-ind" id="pdfPageIndicator">صفحه ۱ از ۱</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="icon-btn" onclick="prevPdfPage()" style="font-size:14px;">‹</button>
+                        <button class="icon-btn" onclick="nextPdfPage()" style="font-size:14px;">›</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+
+    function updateImportList() {
+        const container = document.getElementById('importList');
+        if (!container) return;
+        const items = STATE.library.filter(f => !SAMPLE_FILES.some(s => s.id === f.id)).reverse().slice(0, 5);
+        const iconMap = { video: '▶', audio: '🎵', pdf: '📄', image: '🖼' };
+        container.innerHTML = items.length ?
+            items.map(item => `
+                <div class="import-list-item">
+                    <div class="thumb-s">${iconMap[item.type] || '📁'}</div>
+                    <div style="flex:1;"><div class="ii-title">${item.name}</div><div class="ii-status status-ok">✓ رمزگذاری شده (.enc)</div></div>
+                </div>
+            `).join('') :
+            '<div style="color:var(--text-sub);font-size:11px;padding:8px 0;">هیچ فایلی وارد نشده</div>';
+    }
+
+    function showLicenseStatus() {
+        const lic = STATE.license;
+        if (!lic) { showToast('لایسنس فعال نیست'); return; }
+        const expiryStr = lic.expiry === 0 ? 'نامحدود' : new Date(lic.expiry).toLocaleDateString('fa-IR');
+        showToast(`شماره: ${lic.phone} | انقضا: ${expiryStr} | وضعیت: ${lic.used ? 'استفاده شده' : 'فعال'}`);
+    }
+
+    function copyText(text) {
+        navigator.clipboard?.writeText(text).then(() => showToast('کپی شد'));
+    }
+
+    // ================================================================
+    // MODALS & HELPERS
+    // ================================================================
+    function openLicenseModal() { document.getElementById('licenseModal').classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    function openUploadLicenseModal() { document.getElementById('uploadLicenseModal').classList.add('active'); }
+
+    function toggleTheme() {
+        STATE.theme = STATE.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', STATE.theme);
+        showToast(STATE.theme === 'dark' ? '🌙 حالت تاریک' : '☀️ حالت روشن');
+        // به‌روزرسانی دکمه در پروفایل
+        const btn = document.querySelector('.section-box .btn-ghost');
+        if (btn) {
+            btn.textContent = STATE.theme === 'dark' ? '☀️ روشن' : '🌙 تاریک';
+        }
+        lucide.createIcons();
+    }
+
+    function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(el._timer);
+        el._timer = setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    // ================================================================
+    // SECURITY
+    // ================================================================
+    document.addEventListener('keydown', e => {
+        if (e.key === 'PrintScreen') { e.preventDefault(); showToast('⚠️ اسکرین‌شات ممنوع'); }
+        if (e.target.closest('.player-video') || e.target.closest('.player-shell') || e.target.closest('.audio-player-mezzo')) {
+            if (e.key === ' ' || e.key.startsWith('Arrow')) {
+                e.preventDefault();
+                return false;
+            }
+        }
     });
-  }
-  function nextPdfPage() {
-    if (!pdfDoc || pdfPageNum >= pdfDoc.numPages) return;
-    pdfPageNum++;
-    const canvas = document.getElementById('pdfCanvas');
-    renderPdfPage(pdfDoc, pdfPageNum, canvas, canvas.getContext('2d'));
-    document.getElementById('pdfPageIndicator').textContent = `صفحه ${pdfPageNum} از ${pdfDoc.numPages}`;
-  }
-  function prevPdfPage() {
-    if (!pdfDoc || pdfPageNum <= 1) return;
-    pdfPageNum--;
-    const canvas = document.getElementById('pdfCanvas');
-    renderPdfPage(pdfDoc, pdfPageNum, canvas, canvas.getContext('2d'));
-    document.getElementById('pdfPageIndicator').textContent = `صفحه ${pdfPageNum} از ${pdfDoc.numPages}`;
-  }
-
-  // ============================================================
-  //  PAYMENT
-  // ============================================================
-  function selectPlan(el) {
-    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('sel'));
-    el.classList.add('sel');
-    selectedPlanDays = parseInt(el.dataset.days);
-    selectedPlanAmount = el.querySelector('.pp')?.textContent || '۰';
-    document.getElementById('payAmount').textContent = selectedPlanAmount;
-  }
-  function copyCardNumber() {
-    const num = document.getElementById('cardNumberDisplay').textContent.replace(/\s/g, '');
-    navigator.clipboard?.writeText(num).then(() => showToast('کپی شد'));
-  }
-  function submitPayment() {
-    const last4 = document.getElementById('payLast4').value.trim();
-    if (!last4 || last4.length !== 4) { showToast('۴ رقم آخر کارت را وارد کنید'); return; }
-    const amount = document.getElementById('payAmountInput').value.trim() || selectedPlanAmount;
-    const time = document.getElementById('payTime').value.trim() || 'اکنون';
-    const body = encodeURIComponent(
-      `۴ رقم آخر مبدا: ${last4}\nمبلغ: ${amount}\nساعت: ${time}\nایمیل: ${currentUser?.email || 'نامشخص'}\nمدت: ${selectedPlanDays === 0 ? 'نامحدود' : selectedPlanDays + ' روز'}`
-    );
-    window.location.href = `mailto:admin@example.com?subject=درخواست تمدید لایسنس&body=${body}`;
-    showToast('ایمیل درخواست ارسال شد.');
-    if (selectedPlanDays > 0) {
-      const lic = getLicense() || {};
-      lic.expiry = selectedPlanDays === 0 ? 'unlimited' : Date.now() + selectedPlanDays * 86400000;
-      lic.days = selectedPlanDays;
-      saveLicense(selectedPlanDays, lic.email || currentUser?.email || 'user@example.com');
-      showToast('لایسنس به‌روز شد (نمایشی)');
-    }
-  }
-
-  // ============================================================
-  //  SETTINGS / PROFILE
-  // ============================================================
-  function updateLicense() {
-    const days = parseInt(document.getElementById('licenseDaysInput').value);
-    const email = document.getElementById('licenseEmailInput').value.trim();
-    if (!email) { showToast('ایمیل را وارد کنید'); return; }
-    if (isNaN(days) || days < 0) { showToast('مدت نامعتبر'); return; }
-    saveLicense(days, email);
-    showToast('لایسنس ذخیره شد');
-    renderLibrary();
-  }
-  function showLicenseStatus() {
-    const lic = getLicense();
-    if (!lic) { showToast('لایسنس فعال نیست'); return; }
-    showToast(`ایمیل: ${lic.email || 'نامشخص'} | مدت: ${lic.days === 0 ? 'نامحدود' : lic.days + ' روز'} | انقضا: ${lic.expiry === 'unlimited' ? 'نامحدود' : new Date(lic.expiry).toLocaleDateString('fa-IR')}`);
-  }
-
-  // ============================================================
-  //  IMPORT LIST
-  // ============================================================
-  function updateImportList() {
-    const container = document.getElementById('importList');
-    if (!container) return;
-    const items = library.filter(f => !SAMPLE_FILES.some(s => s.id === f.id)).reverse().slice(0, 5);
-    const iconMap = { video: '▶', audio: '🎵', pdf: '📄', image: '🖼' };
-    container.innerHTML = items.length ?
-      items.map(item => `
-        <div class="import-list-item">
-          <div class="thumb-s">${iconMap[item.type] || '📁'}</div>
-          <div style="flex:1;"><div class="ii-title">${item.name}</div><div class="ii-status status-ok">✓ وارد شده</div></div>
-        </div>
-      `).join('') :
-      '<div style="color:var(--text-3);font-size:12px;padding:10px 0;">هیچ فایلی وارد نشده</div>';
-  }
-
-  // ============================================================
-  //  TOAST & SECURITY
-  // ============================================================
-  function showToast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(el._timer);
-    el._timer = setTimeout(() => el.classList.remove('show'), 3000);
-  }
-  document.addEventListener('keydown', e => {
-    if (e.key === 'PrintScreen') { e.preventDefault(); showToast('⚠️ اسکرین‌شات ممنوع'); }
-    // Disable spacebar and arrow keys for media control
-    if (e.target.closest('.player-video') || e.target.closest('.player-shell')) {
-      if (e.key === ' ' || e.key.startsWith('Arrow')) {
-        e.preventDefault();
-        return false;
-      }
-    }
-  });
-  document.addEventListener('contextmenu', e => {
-    if (e.target.closest('.player-video') || e.target.closest('.pdf-page') || e.target.closest('.card-thumb')) {
-      e.preventDefault(); showToast('⚠️ راست‌کلیک ممنوع');
-    }
-  });
-
-  // ============================================================
-  //  INIT
-  // ============================================================
-  window.addEventListener('load', () => {
-    loadData();
-    // Ensure sample files are always in library
-    SAMPLE_FILES.forEach(sample => {
-      if (!library.find(f => f.id === sample.id)) {
-        library.push({ ...sample });
-      }
+    document.addEventListener('contextmenu', e => {
+        if (e.target.closest('.player-video') || e.target.closest('.pdf-page') || e.target.closest('.post-media') ||
+            e.target.closest('.image-viewer') || e.target.closest('.audio-player-mezzo')) {
+            e.preventDefault();
+            showToast('⚠️ راست‌کلیک ممنوع');
+        }
     });
-    if (currentUser) {
-      document.getElementById('licenseEmailInput').value = currentUser.email;
-    }
-    updateImportList();
-    updateLicenseUI();
-    updateWatermarks();
-    renderLibrary();
-    updateProfileUI();
-    // Show dashboard by default
-    switchTab('dashboard');
-    // Google Sign-In
-    if (window.google) {
-      window.google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleLogin });
-      window.google.accounts.id.renderButton(document.querySelector('.g_id_signin'), {
-        type: 'standard', shape: 'rectangular', theme: 'outline', text: 'signin_with', size: 'large'
-      });
-    }
-  });
 
-  // Expose functions globally
-  window.switchTab = switchTab;
-  window.importFile = importFile;
-  window.openItem = openItem;
-  window.togglePlay = togglePlay;
-  window.selectPlan = selectPlan;
-  window.copyCardNumber = copyCardNumber;
-  window.submitPayment = submitPayment;
-  window.updateLicense = updateLicense;
-  window.showLicenseStatus = showLicenseStatus;
-  window.filterCards = filterCards;
-  window.showToast = showToast;
-  window.nextPdfPage = nextPdfPage;
-  window.prevPdfPage = prevPdfPage;
-  window.handleGoogleLogin = handleGoogleLogin;
-  window.logout = logout;
-  window.initPlayer = initPlayer;
-</script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/faradanesh/sw.js')
-      .then(() => console.log('✅ Service Worker ثبت شد'))
-      .catch(err => console.log('❌ خطا در ثبت Service Worker:', err));
-  }
-</script>
+    // ================================================================
+    // INIT
+    // ================================================================
+    window.addEventListener('load', () => {
+        loadData();
+        updateWatermarks();
+        updateImportList();
+        renderHome();
+        lucide.createIcons();
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                const v = document.getElementById('playerVideo');
+                if (v) {
+                    v.style.objectFit = window.innerWidth > window.innerHeight ? 'contain' : 'cover';
+                }
+            }, 300);
+        });
+    });
 
+    // ================================================================
+    // EXPOSE GLOBALS
+    // ================================================================
+    window.switchTab = switchTab;
+    window.importFileFromLink = importFileFromLink;
+    window.importFileFromDevice = importFileFromDevice;
+    window.openItem = openItem;
+    window.togglePlay = togglePlay;
+    window.stepVideo = stepVideo;
+    window.setVideoSpeed = setVideoSpeed;
+    window.toggleVideoLock = toggleVideoLock;
+    window.cycleVideoAspect = cycleVideoAspect;
+    window.togglePipMode = togglePipMode;
+    window.toggleFullscreen = toggleFullscreen;
+    window.toggleAudioPlay = toggleAudioPlay;
+    window.stepAudio = stepAudio;
+    window.audioPrev = audioPrev;
+    window.audioNext = audioNext;
+    window.audioShuffle = audioShuffle;
+    window.audioRepeat = audioRepeat;
+    window.audioEqToggle = audioEqToggle;
+    window.selectPlan = selectPlan;
+    window.copyCardNumber = copyCardNumber;
+    window.submitPayment = submitPayment;
+    window.showLicenseStatus = showLicenseStatus;
+    window.filterCards = filterCards;
+    window.showToast = showToast;
+    window.nextPdfPage = nextPdfPage;
+    window.prevPdfPage = prevPdfPage;
+    window.toggleTheme = toggleTheme;
+    window.setFilter = setFilter;
+    window.confirmResume = confirmResume;
+    window.openLicenseModal = openLicenseModal;
+    window.closeModal = closeModal;
+    window.openUploadLicenseModal = openUploadLicenseModal;
+    window.uploadLicenseFile = uploadLicenseFile;
+    window.generateFingerprint = generateFingerprint;
+    window.copyText = copyText;
+    window.renderLibrary = renderLibrary;
+    window.imageZoomIn = imageZoomIn;
+    window.imageZoomOut = imageZoomOut;
+    window.imageZoomReset = imageZoomReset;
+    window.imageRotateLeft = imageRotateLeft;
+    window.imageRotateRight = imageRotateRight;
+    window.pdfSearch = pdfSearch;
+    window.pdfBookmark = pdfBookmark;
+    window.toggleSave = toggleSave;
+</script>
 </body>
 </html>
-
