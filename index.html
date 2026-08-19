@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>فرادانش پرو — پلتفرم آموزشی امن</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-0: #0B0D11;
+      --bg-1: #141720;
+      --bg-2: #1B1F2A;
+      --bg-3: #242938;
+      --gold: #E8A93B;
+      --gold-dim: #8A6A2C;
+      --gold-tint: #3A2F1A;
+      --green: #3DDC97;
+      --red: #E85D5D;
+      --text-1: #F2F3F5;
+      --text-2: #9AA1B0;
+      --text-3: #5E6577;
+      --line: #262B38;
+      --line-2: #333A4A;
+    }
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: #05060A;
+      color: var(--text-1);
+      padding: 20px 10px 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      min-height: 100vh;
+      justify-content: center;
+    }
+    .frame {
+      width: 100%;
+      max-width: 380px;
+      height: 780px;
+      background: var(--bg-0);
+      border-radius: 44px;
+      border: 10px solid #000;
+      box-shadow: 0 0 0 1px #1a1a1a, 0 40px 80px -20px rgba(0,0,0,0.8);
+      overflow: hidden;
+      position: relative;
+      display: none;
+      flex-direction: column;
+    }
+    .frame.active { display: flex; }
+    .notch {
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 120px; height: 24px; background: #000; border-radius: 0 0 16px 16px; z-index: 50;
+    }
+    .screen {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      scrollbar-width: none;
+    }
+    .screen::-webkit-scrollbar { display: none; }
+    .status-row { height: 44px; flex-shrink: 0; }
+
+    /* Top Bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 18px 14px; flex-shrink: 0;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .brand-mark {
+      width: 30px; height: 30px; border-radius: 9px;
+      background: linear-gradient(160deg, var(--gold), #B87F1E);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; color: #1A1305; font-size: 15px;
+    }
+    .brand-name { font-size: 15px; font-weight: 700; }
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 10px; background: var(--bg-2);
+      display: flex; align-items: center; justify-content: center; color: var(--text-1);
+      border: 1px solid var(--line); position: relative; cursor: pointer;
+      font-size: 16px;
+    }
+    .icon-btn .dot {
+      position: absolute; top: -3px; left: -3px; width: 8px; height: 8px;
+      border-radius: 50%; background: var(--red); border: 2px solid var(--bg-0);
+    }
+
+    /* License Pill */
+    .license-pill {
+      margin: 0 18px 16px; padding: 10px 14px; border-radius: 14px;
+      background: var(--bg-2); border: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .license-pill .l-left { display: flex; align-items: center; gap: 9px; }
+    .license-pill .l-icon {
+      width: 30px; height: 30px; border-radius: 9px; background: var(--gold-tint);
+      display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 15px;
+    }
+    .license-pill .l-title { font-size: 12.5px; font-weight: 600; }
+    .license-pill .l-sub { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+    .license-pill .l-days {
+      font-size: 11px; color: var(--green); font-weight: 600;
+      background: rgba(61,220,151,0.12); padding: 4px 9px; border-radius: 100px;
+    }
+
+    /* Search */
+    .search-row { padding: 0 18px 14px; }
+    .search-box {
+      background: var(--bg-2); border: 1px solid var(--line); border-radius: 13px;
+      padding: 11px 14px; display: flex; align-items: center; gap: 8px;
+      color: var(--text-3); font-size: 13px;
+    }
+    .search-box input {
+      background: transparent; border: none; color: var(--text-1); width: 100%;
+      font-family: 'Vazirmatn', sans-serif; font-size: 13px; outline: none;
+    }
+
+    /* Chips */
+    .chips { display: flex; gap: 8px; padding: 0 18px 18px; overflow-x: auto; }
+    .chip {
+      flex-shrink: 0; padding: 8px 16px; border-radius: 100px; font-size: 12.5px;
+      background: var(--bg-2); color: var(--text-2); border: 1px solid var(--line);
+      white-space: nowrap; cursor: pointer;
+    }
+    .chip.on { background: var(--gold); color: #1A1305; font-weight: 600; border-color: var(--gold); }
+
+    /* Grid */
+    .section-label {
+      padding: 0 18px 12px; font-size: 14px; font-weight: 700;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .section-label span.more { font-size: 11.5px; color: var(--gold); font-weight: 500; cursor: pointer; }
+    .grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 11px; padding: 0 18px 20px;
+    }
+    .card {
+      background: var(--bg-2); border-radius: 16px; overflow: hidden;
+      border: 1px solid var(--line); position: relative; cursor: pointer;
+      transition: 0.1s;
+    }
+    .card:active { transform: scale(0.97); }
+    .card-thumb {
+      position: relative; width: 100%; aspect-ratio: 3/4; overflow: hidden;
+      background: linear-gradient(150deg, var(--bg-3), var(--bg-1));
+    }
+    .card-thumb .type-badge {
+      position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 8px;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: #fff;
+    }
+    .card-thumb .ring-wrap {
+      position: absolute; bottom: 8px; left: 8px; width: 34px; height: 34px;
+    }
+    .card-thumb .done-badge {
+      position: absolute; bottom: 8px; left: 8px; width: 24px; height: 24px; border-radius: 50%;
+      background: var(--green); display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: #08331F;
+    }
+    .card-body { padding: 10px 11px 12px; }
+    .card-title {
+      font-size: 12.5px; font-weight: 600; line-height: 1.4; margin-bottom: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card-meta { font-size: 10.5px; color: var(--text-2); display: flex; align-items: center; gap: 5px; }
+
+    svg.ring { transform: rotate(-90deg); }
+    svg.ring circle { fill: none; stroke-width: 3; }
+    svg.ring .bg { stroke: rgba(255,255,255,0.15); }
+    svg.ring .fg { stroke: var(--gold); stroke-linecap: round; transition: stroke-dashoffset .3s; }
+    .ring-pct {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; color: #fff;
+    }
+
+    /* Bottom Nav */
+    .bottomnav {
+      height: 66px; flex-shrink: 0; background: var(--bg-1); border-top: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-around; padding-bottom: 6px;
+    }
+    .navitem {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: var(--text-3); font-size: 10px; cursor: pointer;
+    }
+    .navitem.on { color: var(--gold); }
+    .navitem .ic { font-size: 20px; }
+
+    /* Player */
+    .player-shell { display: flex; flex-direction: column; height: 100%; background: #000; }
+    .player-video {
+      width: 100%; aspect-ratio: 9/16; background: linear-gradient(160deg,#20242f,#0d0f14);
+      position: relative; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; overflow: hidden;
+    }
+    .player-video video, .player-video audio {
+      width: 100%; height: 100%; object-fit: cover;
+      pointer-events: none;
+    }
+    .player-video audio {
+      height: auto;
+      min-height: 80px;
+    }
+    .watermark {
+      position: absolute; color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 600;
+      transform: rotate(-18deg); pointer-events: none; text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+      letter-spacing: 0.5px;
+    }
+    .wm1 { top: 18%; right: 10%; } .wm2 { top: 52%; left: 8%; } .wm3 { bottom: 14%; right: 22%; }
+    .secure-badge {
+      position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px); border: 1px solid rgba(232,169,59,0.4);
+      border-radius: 100px; padding: 5px 12px; font-size: 10.5px;
+      color: var(--gold); display: flex; align-items: center; gap: 5px; pointer-events: none;
+    }
+    .play-btn-c {
+      width: 58px; height: 58px; border-radius: 50%; background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(6px); border: 1.5px solid rgba(255,255,255,0.35);
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px;
+      z-index: 5; cursor: pointer; transition: 0.1s;
+    }
+    .play-btn-c:active { transform: scale(0.9); }
+    .p-top-controls {
+      position: absolute; top: 14px; left: 14px; display: flex; gap: 8px;
+    }
+    .p-back {
+      width: 32px; height: 32px; border-radius: 50%; background: rgba(0,0,0,0.5);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 15px; cursor: pointer;
+    }
+    .player-progress-row {
+      position: absolute; bottom: 12px; left: 14px; right: 14px;
+      display: flex; align-items: center; gap: 8px; pointer-events: none;
+    }
+    .player-progress-row .t { font-size: 10px; color: rgba(255,255,255,0.85); }
+    .pbar {
+      flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.25);
+      position: relative; pointer-events: auto;
+    }
+    .pbar .fill { position: absolute; right: 0; top: 0; bottom: 0; width: 38%; background: var(--gold); border-radius: 3px; }
+    .pbar .knob {
+      position: absolute; right: 38%; top: 50%; transform: translate(50%,-50%);
+      width: 10px; height: 10px; border-radius: 50%; background: var(--gold);
+      pointer-events: auto; cursor: pointer;
+    }
+    .player-info { padding: 18px; }
+    .player-info h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; line-height: 1.5; }
+    .player-info .meta-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .meta-tag {
+      font-size: 11px; color: var(--text-2); background: var(--bg-2);
+      border: 1px solid var(--line); padding: 5px 10px; border-radius: 100px;
+    }
+    .resume-note {
+      display: flex; align-items: center; gap: 8px; background: var(--gold-tint);
+      border: 1px solid rgba(232,169,59,0.35); padding: 10px 12px; border-radius: 12px;
+      font-size: 12px; color: var(--gold); margin-bottom: 16px;
+    }
+    .warn-note {
+      display: flex; align-items: flex-start; gap: 8px; background: rgba(232,93,93,0.08);
+      border: 1px solid rgba(232,93,93,0.28); padding: 10px 12px; border-radius: 12px;
+      font-size: 11.5px; color: #F0A0A0; line-height: 1.7;
+    }
+
+    /* Import */
+    .import-wrap { padding: 20px 18px; }
+    .import-hero { text-align: center; padding: 26px 10px 22px; }
+    .import-hero .ic-big {
+      width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 18px;
+      background: var(--gold-tint); display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 28px;
+    }
+    .import-hero h2 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .import-hero p { font-size: 12.5px; color: var(--text-2); line-height: 1.9; max-width: 280px; margin: 0 auto; }
+    .field-label { font-size: 12px; color: var(--text-2); margin-bottom: 8px; font-weight: 500; }
+    .field-input {
+      background: var(--bg-2); border: 1px solid var(--line); border-radius: 13px;
+      padding: 13px 14px; font-size: 13px; color: var(--text-1); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 9px;
+    }
+    .field-input input {
+      background: transparent; border: none; color: var(--text-1); width: 100%;
+      font-family: 'Vazirmatn', sans-serif; font-size: 13px; outline: none;
+    }
+    .field-input input::placeholder { color: var(--text-3); }
+    .btn-primary {
+      background: var(--gold); color: #1A1305; border: none; border-radius: 13px;
+      padding: 14px; width: 100%; font-family: 'Vazirmatn', sans-serif;
+      font-weight: 700; font-size: 13.5px; cursor: pointer; margin-top: 6px;
+    }
+    .btn-ghost {
+      background: transparent; color: var(--text-2); border: 1px solid var(--line);
+      border-radius: 13px; padding: 13px; width: 100%;
+      font-family: 'Vazirmatn', sans-serif; font-weight: 600; font-size: 12.5px;
+      margin-top: 10px; cursor: pointer;
+    }
+    .import-list-item {
+      display: flex; align-items: center; gap: 11px; background: var(--bg-2);
+      border: 1px solid var(--line); border-radius: 13px; padding: 11px 12px; margin-bottom: 9px;
+    }
+    .import-list-item .thumb-s {
+      width: 42px; height: 42px; border-radius: 9px; background: var(--bg-3);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      color: var(--text-2); font-size: 16px;
+    }
+    .import-list-item .ii-title { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+    .import-list-item .ii-status { font-size: 10.5px; }
+    .status-ok { color: var(--green); } .status-wait { color: var(--gold); }
+
+    /* Payment */
+    .pay-card {
+      background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px;
+      padding: 18px; margin: 0 18px 16px;
+    }
+    .pay-card .p-label { font-size: 11.5px; color: var(--text-2); margin-bottom: 6px; }
+    .pay-card .p-number {
+      font-size: 19px; font-weight: 700; letter-spacing: 1.5px; color: var(--gold);
+      margin-bottom: 14px; direction: ltr; text-align: right;
+    }
+    .pay-card .p-row {
+      display: flex; justify-content: space-between; font-size: 12px;
+      color: var(--text-2); padding: 9px 0; border-top: 1px solid var(--line);
+    }
+    .pay-card .p-row b { color: var(--text-1); font-weight: 600; }
+    .copy-btn {
+      font-size: 11px; color: var(--gold); border: 1px solid var(--gold-dim);
+      border-radius: 100px; padding: 5px 12px; background: rgba(232,169,59,0.08);
+      cursor: pointer;
+    }
+    .plan-grid {
+      display: flex; gap: 9px; padding: 0 18px 16px;
+    }
+    .plan-card {
+      flex: 1; background: var(--bg-2); border: 1px solid var(--line);
+      border-radius: 14px; padding: 14px 10px; text-align: center; cursor: pointer;
+    }
+    .plan-card.sel { border-color: var(--gold); background: var(--gold-tint); }
+    .plan-card .pd { font-size: 11px; color: var(--text-2); margin-bottom: 4px; }
+    .plan-card .pp { font-size: 14px; font-weight: 700; }
+    .plan-card.sel .pp { color: var(--gold); }
+
+    /* Profile / Settings */
+    .profile-wrap { padding: 20px 18px; }
+    .profile-avatar {
+      width: 72px; height: 72px; border-radius: 50%; background: var(--bg-2);
+      margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;
+      font-size: 30px; color: var(--text-2); border: 2px solid var(--line);
+    }
+    .profile-wrap .field-label { margin-top: 16px; }
+    .profile-wrap .btn-primary { margin-top: 10px; }
+
+    /* Login overlay inside profile */
+    .login-section {
+      background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px;
+      padding: 16px; margin-bottom: 20px; text-align: center;
+    }
+    .login-section .g_id_signin { display: flex; justify-content: center; margin-top: 10px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--bg-2); color: var(--text-1); padding: 12px 24px;
+      border-radius: 14px; border: 1px solid var(--gold); font-size: 13px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 999;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; pointer-events: auto; }
+  </style>
+</head>
+<body>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- ===== FRAME: DASHBOARD (خانه) ===== -->
+<div class="frame active" id="frame-dashboard">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="status-row"></div>
+    <div class="topbar">
+      <div class="brand"><div class="brand-mark">ف</div><div class="brand-name">فرادانش پرو</div></div>
+      <div class="icon-btn" onclick="showToast('اعلان‌ها')"><span>🔔</span><div class="dot"></div></div>
+    </div>
+    <div class="license-pill" id="licensePill">
+      <div class="l-left">
+        <div class="l-icon">✓</div>
+        <div><div class="l-title">لایسنس فعال</div><div class="l-sub" id="licenseSub">دوره‌ی عمومی</div></div>
+      </div>
+      <div class="l-days" id="licenseDays">نامحدود</div>
+    </div>
+    <div class="search-row">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" placeholder="جستجو در محتوای دوره..." id="searchInput" oninput="filterCards()">
+      </div>
+    </div>
+    <div class="chips" id="chipsContainer">
+      <div class="chip on" data-filter="all">همه</div>
+      <div class="chip" data-filter="video">ویدیو</div>
+      <div class="chip" data-filter="audio">صوت</div>
+      <div class="chip" data-filter="pdf">PDF</div>
+      <div class="chip" data-filter="image">تصویر</div>
+      <div class="chip" data-filter="unseen">دیده‌نشده</div>
+    </div>
+    <div class="section-label">ادامهٔ مشاهده <span class="more" onclick="showToast('نمایش همه')">مشاهده همه</span></div>
+    <div class="grid" id="gridContinue"></div>
+    <div class="section-label">همهٔ محتوا</div>
+    <div class="grid" id="gridAll"></div>
+  </div>
+  <div class="bottomnav">
+    <div class="navitem on" data-nav="dashboard"><span class="ic">⌂</span>خانه</div>
+    <div class="navitem" data-nav="import"><span class="ic">⤓</span>ایمپورت</div>
+    <div class="navitem" data-nav="profile"><span class="ic">👤</span>پروفایل</div>
+    <div class="navitem" data-nav="payment"><span class="ic">💳</span>پرداخت</div>
+  </div>
+</div>
+
+<!-- ===== FRAME: IMPORT ===== -->
+<div class="frame" id="frame-import">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="status-row"></div>
+    <div class="topbar">
+      <div class="brand"><div class="brand-mark">ف</div><div class="brand-name">ایمپورت محتوا</div></div>
+      <div class="icon-btn" onclick="switchTab('dashboard')">✕</div>
+    </div>
+    <div class="import-wrap">
+      <div class="import-hero">
+        <div class="ic-big">🔗</div>
+        <h2>افزودن فایل از لینک</h2>
+        <p>لینک مستقیم یا لینک اشتراک‌گذاری گوگل‌درایو را وارد کنید. فایل با واترمارک اختصاصی شما ذخیره می‌شود.</p>
+      </div>
+      <div class="field-label">لینک فایل</div>
+      <div class="field-input">
+        <input type="text" id="importLink" placeholder="https://drive.google.com/file/d/... یا لینک مستقیم" dir="ltr">
+      </div>
+      <div class="field-label">نام فایل (اختیاری)</div>
+      <div class="field-input">
+        <input type="text" id="importName" placeholder="نام دوره یا فصل">
+      </div>
+      <button class="btn-primary" onclick="importFile()">افزودن به کتابخانه من</button>
+      <div style="height:22px;"></div>
+      <div class="field-label">فایل‌های وارد شده</div>
+      <div id="importList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FRAME: PLAYER (Video & Audio) ===== -->
+<div class="frame" id="frame-player">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="player-shell">
+      <div class="player-video" id="playerContainer">
+        <video id="playerVideo" controls style="display:none; width:100%; height:100%; object-fit:cover;"></video>
+        <audio id="playerAudio" controls style="display:none; width:100%;"></audio>
+        <div id="playerPlaceholder" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:var(--text-3); flex-direction:column; gap:10px;">
+          <span style="font-size:40px;">🎬</span>
+          <span>فایلی برای پخش انتخاب نشده</span>
+        </div>
+        <div class="secure-badge">🔒 پخش امن</div>
+        <div class="watermark wm1" id="wm1">user@example.com</div>
+        <div class="watermark wm2" id="wm2">کد اکانت: FP-0000</div>
+        <div class="watermark wm3" id="wm3">user@example.com</div>
+        <div class="play-btn-c" id="playBtn" onclick="togglePlay()">▶</div>
+        <div class="player-progress-row">
+          <span class="t" id="currentTimeDisplay">۰۰:۰۰</span>
+          <div class="pbar" id="progressBar">
+            <div class="fill" id="progressFill" style="width:0%;"></div>
+            <div class="knob" id="progressKnob" style="right:0%;"></div>
+          </div>
+          <span class="t" id="durationDisplay">۰۰:۰۰</span>
+        </div>
+        <div class="p-top-controls">
+          <div class="p-back" onclick="switchTab('dashboard')">→</div>
+        </div>
+      </div>
+      <div class="player-info">
+        <h3 id="playerTitle">عنوان فایل</h3>
+        <div class="meta-row">
+          <span class="meta-tag" id="playerDuration">۰ دقیقه</span>
+          <span class="meta-tag" id="playerTypeTag">کیفیت ۷۲۰p</span>
+        </div>
+        <div class="resume-note" id="resumeNote">↻ از دقیقهٔ ۰۰:۰۰ ادامه بده</div>
+        <div class="warn-note">⚠ ضبط صفحه، اسکرین‌شات و خروج از صفحه در حین پخش محدود شده است. واترمارک اختصاصی شما قابل مشاهده است.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FRAME: PDF ===== -->
+<div class="frame" id="frame-pdf">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="status-row"></div>
+    <div class="topbar">
+      <div class="brand"><div class="p-back" style="position:static; background:transparent; color:var(--text-1); font-size:18px;" onclick="switchTab('dashboard')">→</div></div>
+      <div class="brand-name" style="font-size:13px;" id="pdfTitle">جدول زمان‌بندی واکسن</div>
+      <div class="icon-btn" onclick="showToast('گزینه‌های PDF')" style="font-size:13px;">⋮</div>
+    </div>
+    <div class="pdf-shell">
+      <div class="pdf-page" id="pdfPage">
+        <div class="pwm" id="pdfWatermark">user@example.com</div>
+        <canvas id="pdfCanvas"></canvas>
+      </div>
+      <div class="pdf-bottombar">
+        <span class="pdf-page-ind" id="pdfPageIndicator">صفحه ۱ از ۱</span>
+        <div style="display:flex; gap:8px;">
+          <div class="icon-btn" style="width:30px;height:30px;font-size:13px;" onclick="prevPdfPage()">‹</div>
+          <div class="icon-btn" style="width:30px;height:30px;font-size:13px;" onclick="nextPdfPage()">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FRAME: PAYMENT ===== -->
+<div class="frame" id="frame-payment">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="status-row"></div>
+    <div class="topbar">
+      <div class="brand"><div class="brand-mark">ف</div><div class="brand-name">تمدید لایسنس</div></div>
+      <div class="icon-btn" onclick="switchTab('dashboard')">✕</div>
+    </div>
+    <div class="section-label" style="padding-top:4px;">مدت لایسنس را انتخاب کنید</div>
+    <div class="plan-grid" id="planGrid">
+      <div class="plan-card" data-days="30" onclick="selectPlan(this)"><div class="pd">۱ ماهه</div><div class="pp">۴۹۰ هزار</div></div>
+      <div class="plan-card sel" data-days="90" onclick="selectPlan(this)"><div class="pd">۳ ماهه</div><div class="pp">۱٬۲۹۰ هزار</div></div>
+      <div class="plan-card" data-days="0" onclick="selectPlan(this)"><div class="pd">نامحدود</div><div class="pp">۳٬۹۰۰ هزار</div></div>
+    </div>
+    <div class="section-label">اطلاعات واریز</div>
+    <div class="pay-card">
+      <div class="p-label">شماره کارت مقصد</div>
+      <div class="p-number" id="cardNumberDisplay">6274 1211 7845 3390</div>
+      <div class="p-row"><span>به نام</span><b>پوریا [نام خانوادگی]</b></div>
+      <div class="p-row"><span>مبلغ قابل پرداخت</span><b id="payAmount">۱٬۲۹۰٬۰۰۰ تومان</b></div>
+      <div style="text-align:left; margin-top:12px;">
+        <span class="copy-btn" onclick="copyCardNumber()">کپی شماره کارت</span>
+      </div>
+    </div>
+    <div style="padding:0 18px;">
+      <div class="field-label">پس از واریز، اطلاعات زیر را ثبت کنید</div>
+      <div class="field-input">
+        <input type="text" id="payLast4" placeholder="۴ رقم آخر کارت مبدا" maxlength="4" dir="ltr">
+      </div>
+      <div class="field-input">
+        <input type="text" id="payAmountInput" placeholder="مبلغ واریزی" dir="ltr">
+      </div>
+      <div class="field-input">
+        <input type="text" id="payTime" placeholder="ساعت واریز" dir="ltr">
+      </div>
+      <button class="btn-primary" onclick="submitPayment()">اعلام واریز و ثبت درخواست</button>
+      <button class="btn-ghost" onclick="switchTab('profile')">وضعیت لایسنس فعلی من</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FRAME: PROFILE (ورود + تنظیمات) ===== -->
+<div class="frame" id="frame-profile">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="status-row"></div>
+    <div class="topbar">
+      <div class="brand"><div class="brand-mark">ف</div><div class="brand-name">پروفایل</div></div>
+      <div class="icon-btn" onclick="switchTab('dashboard')">✕</div>
+    </div>
+    <div class="profile-wrap">
+      <div class="profile-avatar" id="profileAvatar">👤</div>
+      <div id="profileInfo" style="text-align:center; margin-bottom:20px;">
+        <div style="font-weight:600; font-size:15px;" id="profileName">کاربر مهمان</div>
+        <div style="font-size:12px; color:var(--text-2);" id="profileEmail">وارد نشده</div>
+      </div>
+
+      <!-- Login Section (Google) -->
+      <div class="login-section" id="loginSection">
+        <div style="font-size:13px; font-weight:600; margin-bottom:6px;">🔐 ورود به حساب</div>
+        <div style="font-size:11px; color:var(--text-3); margin-bottom:10px;">با حساب گوگل وارد شوید تا واترمارک اختصاصی فعال شود.</div>
+        <div id="g_id_onload" data-client_id="575292349672-8k46b28raosei9rc41vttgqugiueekjb.apps.googleusercontent.com" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
+        <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
+        <button class="btn-ghost" style="margin-top:10px; display:none;" id="logoutBtn" onclick="logout()">خروج از حساب</button>
+      </div>
+
+      <!-- License Settings -->
+      <div style="margin-top:20px; background:var(--bg-2); padding:16px; border-radius:14px; border:1px solid var(--line);">
+        <div class="field-label">مدت اعتبار لایسنس (روز)</div>
+        <div class="field-input">
+          <input type="number" id="licenseDaysInput" placeholder="مثلاً 30" value="90">
+        </div>
+        <div class="field-label">ایمیل کاربر (برای واترمارک)</div>
+        <div class="field-input">
+          <input type="email" id="licenseEmailInput" placeholder="user@example.com">
+        </div>
+        <button class="btn-primary" onclick="updateLicense()">ذخیره لایسنس</button>
+        <button class="btn-ghost" onclick="showLicenseStatus()">نمایش وضعیت فعلی</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  //  CONSTANTS & GLOBALS
+  // ============================================================
+  const GOOGLE_CLIENT_ID = '575292349672-8k46b28raosei9rc41vttgqugiueekjb.apps.googleusercontent.com';
+  const STORAGE_KEY = 'faradanesh_data';
+  const FILES_STORE = 'files';
+
+  let currentUser = null;
+  let library = [];
+  let pdfDoc = null;
+  let pdfPageNum = 1;
+  let isPlaying = false;
+  let selectedPlanDays = 90;
+  let selectedPlanAmount = '۱٬۲۹۰٬۰۰۰';
+  let currentMediaElement = null;
+  let currentFileType = 'video';
+
+  // ============================================================
+  //  SAMPLE DATA (برای تست)
+  // ============================================================
+  const SAMPLE_FILES = [
+    {
+      id: 'sample_video',
+      name: 'ویدیوی نمونه — آموزش مقدماتی',
+      type: 'video',
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+      progress: 0,
+      watched: false
+    },
+    {
+      id: 'sample_audio',
+      name: 'فایل صوتی نمونه — پادکست آموزشی',
+      type: 'audio',
+      url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+      progress: 0,
+      watched: false
+    },
+    {
+      id: 'sample_pdf',
+      name: 'PDF نمونه — جزوه آموزشی',
+      type: 'pdf',
+      url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      progress: 0,
+      watched: false
+    },
+    {
+      id: 'sample_image',
+      name: 'تصویر نمونه — نمودار آموزشی',
+      type: 'image',
+      url: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400&q=60',
+      progress: 0,
+      watched: false
+    }
+  ];
+
+  // ============================================================
+  //  DATA PERSISTENCE
+  // ============================================================
+  function loadData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        currentUser = data.user || null;
+        // Merge sample files with stored library, but don't override if already exists
+        const storedIds = (data.library || []).map(f => f.id);
+        const samples = SAMPLE_FILES.filter(s => !storedIds.includes(s.id));
+        library = [...(data.library || []), ...samples];
+      } else {
+        // First time: load samples
+        library = SAMPLE_FILES.map(f => ({ ...f }));
+      }
+    } catch(e) { library = SAMPLE_FILES.map(f => ({ ...f })); }
+    // Ensure samples are always present if missing
+    SAMPLE_FILES.forEach(sample => {
+      if (!library.find(f => f.id === sample.id)) {
+        library.push({ ...sample });
+      }
+    });
+  }
+  function saveData() {
+    // Don't save sample files (they are read-only), only user-imported files
+    const userFiles = library.filter(f => !SAMPLE_FILES.some(s => s.id === f.id));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: currentUser, library: userFiles }));
+  }
+
+  function getLicense() {
+    try {
+      const raw = localStorage.getItem('faradanesh_license');
+      return raw ? JSON.parse(raw) : null;
+    } catch(e) { return null; }
+  }
+  function saveLicense(days, email) {
+    const expiry = days === 0 ? 'unlimited' : Date.now() + days * 86400000;
+    localStorage.setItem('faradanesh_license', JSON.stringify({ days, expiry, email }));
+    updateLicenseUI();
+    updateWatermarks();
+  }
+  function updateLicenseUI() {
+    const lic = getLicense();
+    const daysEl = document.getElementById('licenseDays');
+    const subEl = document.getElementById('licenseSub');
+    if (!lic) { daysEl.textContent = 'نامشخص'; subEl.textContent = 'لایسنس فعال نیست'; return; }
+    if (lic.expiry === 'unlimited') {
+      daysEl.textContent = '∞ نامحدود';
+      subEl.textContent = 'دسترسی کامل';
+    } else {
+      const remaining = Math.max(0, Math.floor((lic.expiry - Date.now()) / 86400000));
+      daysEl.textContent = remaining + ' روز مانده';
+      subEl.textContent = lic.email || 'کاربر';
+    }
+  }
+  function updateWatermarks() {
+    const lic = getLicense();
+    const email = lic?.email || 'user@example.com';
+    const code = 'FP-' + (email.slice(0,4).toUpperCase() || '0000');
+    document.querySelectorAll('.watermark').forEach(el => {
+      if (el.id === 'wm1' || el.id === 'wm3') el.textContent = email;
+      if (el.id === 'wm2') el.textContent = 'کد اکانت: ' + code;
+    });
+    document.getElementById('pdfWatermark').textContent = email;
+    // Update profile
+    document.getElementById('profileEmail').textContent = currentUser ? currentUser.email : 'وارد نشده';
+    document.getElementById('profileName').textContent = currentUser ? currentUser.name || 'کاربر' : 'کاربر مهمان';
+    document.getElementById('licenseEmailInput').value = email;
+  }
+
+  // ============================================================
+  //  GOOGLE LOGIN
+  // ============================================================
+  function handleGoogleLogin(response) {
+    try {
+      const payload = parseJwt(response.credential);
+      if (payload?.email) {
+        currentUser = { email: payload.email, name: payload.name, picture: payload.picture, sub: payload.sub };
+        saveData();
+        const lic = getLicense() || {};
+        lic.email = payload.email;
+        saveLicense(lic.days || 90, payload.email);
+        showToast('ورود موفق! خوش آمدید ' + payload.name);
+        updateProfileUI();
+        updateLicenseUI();
+        updateWatermarks();
+        renderLibrary();
+      }
+    } catch(e) { showToast('خطا در ورود'); console.error(e); }
+  }
+  function parseJwt(token) {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+  }
+  function logout() {
+    currentUser = null;
+    saveData();
+    showToast('خارج شدید');
+    updateProfileUI();
+    updateWatermarks();
+    renderLibrary();
+  }
+  function updateProfileUI() {
+    const loginSection = document.getElementById('loginSection');
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (currentUser) {
+      loginSection.querySelector('.g_id_signin').style.display = 'none';
+      logoutBtn.style.display = 'block';
+    } else {
+      loginSection.querySelector('.g_id_signin').style.display = 'block';
+      logoutBtn.style.display = 'none';
+    }
+    updateWatermarks();
+  }
+
+  // ============================================================
+  //  TAB SWITCHING
+  // ============================================================
+  function switchTab(tabId) {
+    document.querySelectorAll('.frame').forEach(f => f.classList.remove('active'));
+    const target = document.getElementById('frame-' + tabId);
+    if (target) target.classList.add('active');
+    document.querySelectorAll('.navitem').forEach(n => n.classList.remove('on'));
+    const navMap = { dashboard: 0, import: 1, profile: 2, payment: 3 };
+    if (navMap[tabId] !== undefined) {
+      document.querySelectorAll('.navitem')[navMap[tabId]]?.classList.add('on');
+    }
+    if (tabId === 'dashboard') renderLibrary();
+    if (tabId === 'profile') { updateProfileUI(); updateWatermarks(); }
+  }
+
+  // ============================================================
+  //  INDEXEDDB (برای فایل‌های واقعی)
+  // ============================================================
+  function getDb() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open('FaradaneshDB', 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(FILES_STORE)) db.createObjectStore(FILES_STORE, { keyPath: 'id' });
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function storeFile(id, blob, metadata) {
+    const db = await getDb();
+    const tx = db.transaction(FILES_STORE, 'readwrite');
+    tx.objectStore(FILES_STORE).put({ id, blob, metadata });
+    return new Promise(r => tx.oncomplete = r);
+  }
+  async function getFile(id) {
+    const db = await getDb();
+    const tx = db.transaction(FILES_STORE, 'readonly');
+    return new Promise((resolve, reject) => {
+      const req = tx.objectStore(FILES_STORE).get(id);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  // ============================================================
+  //  GOOGLE DRIVE LINK PARSING
+  // ============================================================
+  function parseGoogleDriveLink(link) {
+    let match = link.match(/\/file\/d\/([^/]+)/);
+    if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
+    match = link.match(/id=([^&]+)/);
+    if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
+    match = link.match(/\/d\/([^/]+)/);
+    if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
+    return link;
+  }
+
+  // ============================================================
+  //  IMPORT FILE
+  // ============================================================
+  async function importFile() {
+    let link = document.getElementById('importLink').value.trim();
+    const name = document.getElementById('importName').value.trim() || 'فایل وارد شده';
+    if (!link) { showToast('لطفاً لینک را وارد کنید'); return; }
+    const lic = getLicense();
+    if (!lic || (lic.expiry !== 'unlimited' && lic.expiry < Date.now())) {
+      showToast('لایسنس شما منقضی شده است.');
+      return;
+    }
+    link = parseGoogleDriveLink(link);
+    const ext = link.split('.').pop().toLowerCase().split('?')[0];
+    let type = 'video';
+    if (['jpg','jpeg','png','gif','webp'].includes(ext)) type = 'image';
+    else if (ext === 'pdf') type = 'pdf';
+    else if (['mp3','wav','ogg','m4a','aac'].includes(ext)) type = 'audio';
+    else if (['mp4','webm','mov','avi','mkv'].includes(ext)) type = 'video';
+    else {
+      try {
+        const head = await fetch(link, { method: 'HEAD' });
+        const ct = head.headers.get('content-type') || '';
+        if (ct.includes('video')) type = 'video';
+        else if (ct.includes('audio')) type = 'audio';
+        else if (ct.includes('pdf')) type = 'pdf';
+        else if (ct.includes('image')) type = 'image';
+      } catch(e) {}
+    }
+    try {
+      showToast('در حال دانلود...');
+      const res = await fetch(link);
+      if (!res.ok) throw new Error('خطا در دانلود');
+      const blob = await res.blob();
+      const encrypted = await encryptBlob(blob);
+      const id = 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+      await storeFile(id, encrypted, { name, type, progress: 0, watched: false, watermark: lic.email });
+      library.push({ id, name, type, progress: 0, watched: false });
+      saveData();
+      renderLibrary();
+      updateImportList();
+      showToast('فایل با موفقیت وارد شد');
+      document.getElementById('importLink').value = '';
+      document.getElementById('importName').value = '';
+    } catch(e) { showToast('خطا: ' + e.message); console.error(e); }
+  }
+
+  async function encryptBlob(blob) {
+    const key = 0xAA;
+    const buffer = await blob.arrayBuffer();
+    const view = new Uint8Array(buffer);
+    for (let i = 0; i < view.length; i++) view[i] ^= key;
+    return new Blob([view], { type: blob.type });
+  }
+  async function decryptBlob(encryptedBlob) {
+    const key = 0xAA;
+    const buffer = await encryptedBlob.arrayBuffer();
+    const view = new Uint8Array(buffer);
+    for (let i = 0; i < view.length; i++) view[i] ^= key;
+    return new Blob([view], { type: encryptedBlob.type });
+  }
+
+  // ============================================================
+  //  RENDER LIBRARY
+  // ============================================================
+  function renderLibrary() {
+    const filtered = getFilteredItems();
+    const continueItems = filtered.filter(item => item.progress > 0 && item.progress < 100);
+    document.getElementById('gridContinue').innerHTML = continueItems.length ?
+      continueItems.map(item => cardHtml(item)).join('') :
+      '<div style="grid-column:1/-1;text-align:center;color:var(--text-3);padding:20px;">هیچ محتوای ناتمامی وجود ندارد</div>';
+    document.getElementById('gridAll').innerHTML = filtered.length ?
+      filtered.map(item => cardHtml(item)).join('') :
+      '<div style="grid-column:1/-1;text-align:center;color:var(--text-3);padding:20px;">هیچ محتوایی وارد نشده است</div>';
+  }
+  function getFilteredItems() {
+    const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    const filter = document.querySelector('#chipsContainer .chip.on')?.dataset.filter || 'all';
+    let items = library.slice();
+    if (search) items = items.filter(i => i.name.toLowerCase().includes(search));
+    if (filter === 'video') items = items.filter(i => i.type === 'video');
+    else if (filter === 'audio') items = items.filter(i => i.type === 'audio');
+    else if (filter === 'pdf') items = items.filter(i => i.type === 'pdf');
+    else if (filter === 'image') items = items.filter(i => i.type === 'image');
+    else if (filter === 'unseen') items = items.filter(i => !i.watched && i.progress === 0);
+    return items;
+  }
+  function cardHtml(item) {
+    const iconMap = { video: '▶', audio: '🎵', pdf: '📄', image: '🖼' };
+    const icon = iconMap[item.type] || '📁';
+    const progress = item.progress || 0;
+    const done = item.watched || progress >= 100;
+    const ring = `<svg class="ring" width="34" height="34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="${88 - (progress/100)*88}"/></svg>`;
+    return `
+      <div class="card" onclick="openItem('${item.id}')">
+        <div class="card-thumb">
+          <div style="width:100%;height:100%;background:linear-gradient(150deg,var(--bg-3),var(--bg-1));display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:28px;">${icon}</div>
+          <div class="type-badge">${icon}</div>
+          ${!done && progress > 0 ? `<div class="ring-wrap">${ring}<div class="ring-pct">${Math.round(progress)}%</div></div>` : ''}
+          ${done ? '<div class="done-badge">✓</div>' : ''}
+        </div>
+        <div class="card-body">
+          <div class="card-title">${item.name}</div>
+          <div class="card-meta">${item.type === 'video' ? 'ویدیو' : item.type === 'audio' ? 'صوت' : item.type === 'pdf' ? 'PDF' : 'تصویر'} ${done ? '· دیده شده' : progress > 0 ? `· ${Math.round(progress)}%` : ''}</div>
+        </div>
+      </div>
+    `;
+  }
+  function filterCards() { renderLibrary(); }
+
+  // ============================================================
+  //  OPEN ITEM
+  // ============================================================
+  async function openItem(id) {
+    const item = library.find(f => f.id === id);
+    if (!item) return;
+    const lic = getLicense();
+    if (!lic || (lic.expiry !== 'unlimited' && lic.expiry < Date.now())) {
+      showToast('لایسنس شما منقضی شده است.');
+      return;
+    }
+    if (item.type === 'video' || item.type === 'audio') {
+      switchTab('player');
+      await initPlayer(id);
+    } else if (item.type === 'pdf') {
+      await loadPdf(id);
+      switchTab('pdf');
+    } else if (item.type === 'image') {
+      // Check if it's a sample (has url directly) or stored file
+      if (item.url) {
+        window.open(item.url, '_blank');
+      } else {
+        const stored = await getFile(id);
+        if (stored) {
+          const decrypted = await decryptBlob(stored.blob);
+          window.open(URL.createObjectURL(decrypted), '_blank');
+        }
+      }
+    }
+  }
+
+  // ============================================================
+  //  PLAYER (Video & Audio) - بدون کلیدهای میانبر و عقب/جلو
+  // ============================================================
+  async function initPlayer(fileId) {
+    const videoEl = document.getElementById('playerVideo');
+    const audioEl = document.getElementById('playerAudio');
+    const placeholder = document.getElementById('playerPlaceholder');
+    const playBtn = document.getElementById('playBtn');
+    const titleEl = document.getElementById('playerTitle');
+    const durationEl = document.getElementById('playerDuration');
+    const typeTag = document.getElementById('playerTypeTag');
+    const resumeNote = document.getElementById('resumeNote');
+
+    videoEl.style.display = 'none';
+    audioEl.style.display = 'none';
+    placeholder.style.display = 'flex';
+    playBtn.style.display = 'none';
+
+    if (!fileId) return;
+
+    const item = library.find(f => f.id === fileId);
+    if (!item) return;
+
+    titleEl.textContent = item.name;
+    typeTag.textContent = item.type === 'video' ? 'کیفیت ۷۲۰p' : 'صوت با کیفیت بالا';
+
+    try {
+      let url;
+      let isSample = !!item.url;
+      if (isSample) {
+        url = item.url;
+      } else {
+        const stored = await getFile(fileId);
+        if (!stored) throw new Error('فایل یافت نشد');
+        const decrypted = await decryptBlob(stored.blob);
+        url = URL.createObjectURL(decrypted);
+      }
+
+      let mediaEl;
+      if (item.type === 'video') {
+        mediaEl = videoEl;
+        videoEl.style.display = 'block';
+        audioEl.style.display = 'none';
+        videoEl.src = url;
+        mediaEl = videoEl;
+      } else {
+        mediaEl = audioEl;
+        audioEl.style.display = 'block';
+        videoEl.style.display = 'none';
+        audioEl.src = url;
+        mediaEl = audioEl;
+      }
+
+      placeholder.style.display = 'none';
+      playBtn.style.display = 'flex';
+      currentMediaElement = mediaEl;
+      currentFileType = item.type;
+
+      mediaEl.load();
+      mediaEl.currentTime = (item.progress || 0) / 100 * mediaEl.duration || 0;
+      resumeNote.textContent = `↻ از دقیقهٔ ${formatTime(mediaEl.currentTime)} ادامه بده`;
+
+      // Remove all keyboard shortcuts
+      mediaEl.removeEventListener('keydown', preventKeyboard);
+      mediaEl.addEventListener('keydown', preventKeyboard);
+
+      mediaEl.addEventListener('loadedmetadata', () => {
+        durationEl.textContent = Math.round(mediaEl.duration) + ' دقیقه';
+        document.getElementById('durationDisplay').textContent = formatTime(mediaEl.duration);
+        updateProgress();
+      });
+
+      mediaEl.addEventListener('timeupdate', () => {
+        updateProgress();
+        const pct = mediaEl.duration ? (mediaEl.currentTime / mediaEl.duration) * 100 : 0;
+        item.progress = Math.min(100, pct);
+        if (pct >= 99) item.watched = true;
+        saveData();
+        renderLibrary();
+        resumeNote.textContent = `↻ از دقیقهٔ ${formatTime(mediaEl.currentTime)} ادامه بده`;
+      });
+
+      mediaEl.addEventListener('ended', () => {
+        item.watched = true; item.progress = 100; saveData(); renderLibrary();
+        playBtn.textContent = '▶'; isPlaying = false;
+      });
+
+      mediaEl.addEventListener('contextmenu', e => e.preventDefault());
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && isPlaying) {
+          showToast('⚠️ خروج از صفحه ممنوع');
+          mediaEl.pause(); playBtn.textContent = '▶'; isPlaying = false;
+        }
+      });
+
+      playBtn.onclick = togglePlay;
+
+      document.getElementById('progressBar').addEventListener('click', (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        mediaEl.currentTime = ((e.clientX - rect.left) / rect.width) * mediaEl.duration;
+        updateProgress();
+      });
+
+      mediaEl.pause();
+      playBtn.textContent = '▶';
+      isPlaying = false;
+
+    } catch(e) { showToast('خطا: ' + e.message); }
+  }
+
+  function preventKeyboard(e) {
+    e.preventDefault();
+    return false;
+  }
+
+  function togglePlay() {
+    const media = currentMediaElement;
+    const btn = document.getElementById('playBtn');
+    if (!media || !media.src) return;
+    if (media.paused) {
+      media.play();
+      btn.textContent = '⏸';
+      isPlaying = true;
+    } else {
+      media.pause();
+      btn.textContent = '▶';
+      isPlaying = false;
+    }
+  }
+
+  function updateProgress() {
+    const media = currentMediaElement;
+    if (!media || !media.duration) return;
+    const pct = (media.currentTime / media.duration) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressKnob').style.right = pct + '%';
+    document.getElementById('currentTimeDisplay').textContent = formatTime(media.currentTime);
+  }
+
+  function formatTime(sec) {
+    if (!sec || isNaN(sec)) return '۰۰:۰۰';
+    const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+
+  // ============================================================
+  //  PDF
+  // ============================================================
+  async function loadPdf(fileId) {
+    const item = library.find(f => f.id === fileId);
+    if (!item) return;
+    const canvas = document.getElementById('pdfCanvas');
+    const ctx = canvas.getContext('2d');
+    document.getElementById('pdfTitle').textContent = item.name;
+    try {
+      let data;
+      if (item.url) {
+        const res = await fetch(item.url);
+        const blob = await res.blob();
+        data = await blob.arrayBuffer();
+      } else {
+        const stored = await getFile(fileId);
+        if (!stored) throw new Error('فایل یافت نشد');
+        const decrypted = await decryptBlob(stored.blob);
+        data = await decrypted.arrayBuffer();
+      }
+      pdfDoc = await pdfjsLib.getDocument({ data }).promise;
+      pdfPageNum = 1;
+      renderPdfPage(pdfDoc, pdfPageNum, canvas, ctx);
+      document.getElementById('pdfPageIndicator').textContent = `صفحه ${pdfPageNum} از ${pdfDoc.numPages}`;
+    } catch(e) { showToast('خطا در PDF: ' + e.message); }
+  }
+  function renderPdfPage(doc, pageNum, canvas, ctx) {
+    doc.getPage(pageNum).then(page => {
+      const viewport = page.getViewport({ scale: 1.5 });
+      canvas.width = viewport.width; canvas.height = viewport.height;
+      page.render({ canvasContext: ctx, viewport }).promise.then(() => {});
+    });
+  }
+  function nextPdfPage() {
+    if (!pdfDoc || pdfPageNum >= pdfDoc.numPages) return;
+    pdfPageNum++;
+    const canvas = document.getElementById('pdfCanvas');
+    renderPdfPage(pdfDoc, pdfPageNum, canvas, canvas.getContext('2d'));
+    document.getElementById('pdfPageIndicator').textContent = `صفحه ${pdfPageNum} از ${pdfDoc.numPages}`;
+  }
+  function prevPdfPage() {
+    if (!pdfDoc || pdfPageNum <= 1) return;
+    pdfPageNum--;
+    const canvas = document.getElementById('pdfCanvas');
+    renderPdfPage(pdfDoc, pdfPageNum, canvas, canvas.getContext('2d'));
+    document.getElementById('pdfPageIndicator').textContent = `صفحه ${pdfPageNum} از ${pdfDoc.numPages}`;
+  }
+
+  // ============================================================
+  //  PAYMENT
+  // ============================================================
+  function selectPlan(el) {
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('sel'));
+    el.classList.add('sel');
+    selectedPlanDays = parseInt(el.dataset.days);
+    selectedPlanAmount = el.querySelector('.pp')?.textContent || '۰';
+    document.getElementById('payAmount').textContent = selectedPlanAmount;
+  }
+  function copyCardNumber() {
+    const num = document.getElementById('cardNumberDisplay').textContent.replace(/\s/g, '');
+    navigator.clipboard?.writeText(num).then(() => showToast('کپی شد'));
+  }
+  function submitPayment() {
+    const last4 = document.getElementById('payLast4').value.trim();
+    if (!last4 || last4.length !== 4) { showToast('۴ رقم آخر کارت را وارد کنید'); return; }
+    const amount = document.getElementById('payAmountInput').value.trim() || selectedPlanAmount;
+    const time = document.getElementById('payTime').value.trim() || 'اکنون';
+    const body = encodeURIComponent(
+      `۴ رقم آخر مبدا: ${last4}\nمبلغ: ${amount}\nساعت: ${time}\nایمیل: ${currentUser?.email || 'نامشخص'}\nمدت: ${selectedPlanDays === 0 ? 'نامحدود' : selectedPlanDays + ' روز'}`
+    );
+    window.location.href = `mailto:admin@example.com?subject=درخواست تمدید لایسنس&body=${body}`;
+    showToast('ایمیل درخواست ارسال شد.');
+    if (selectedPlanDays > 0) {
+      const lic = getLicense() || {};
+      lic.expiry = selectedPlanDays === 0 ? 'unlimited' : Date.now() + selectedPlanDays * 86400000;
+      lic.days = selectedPlanDays;
+      saveLicense(selectedPlanDays, lic.email || currentUser?.email || 'user@example.com');
+      showToast('لایسنس به‌روز شد (نمایشی)');
+    }
+  }
+
+  // ============================================================
+  //  SETTINGS / PROFILE
+  // ============================================================
+  function updateLicense() {
+    const days = parseInt(document.getElementById('licenseDaysInput').value);
+    const email = document.getElementById('licenseEmailInput').value.trim();
+    if (!email) { showToast('ایمیل را وارد کنید'); return; }
+    if (isNaN(days) || days < 0) { showToast('مدت نامعتبر'); return; }
+    saveLicense(days, email);
+    showToast('لایسنس ذخیره شد');
+    renderLibrary();
+  }
+  function showLicenseStatus() {
+    const lic = getLicense();
+    if (!lic) { showToast('لایسنس فعال نیست'); return; }
+    showToast(`ایمیل: ${lic.email || 'نامشخص'} | مدت: ${lic.days === 0 ? 'نامحدود' : lic.days + ' روز'} | انقضا: ${lic.expiry === 'unlimited' ? 'نامحدود' : new Date(lic.expiry).toLocaleDateString('fa-IR')}`);
+  }
+
+  // ============================================================
+  //  IMPORT LIST
+  // ============================================================
+  function updateImportList() {
+    const container = document.getElementById('importList');
+    if (!container) return;
+    const items = library.filter(f => !SAMPLE_FILES.some(s => s.id === f.id)).reverse().slice(0, 5);
+    const iconMap = { video: '▶', audio: '🎵', pdf: '📄', image: '🖼' };
+    container.innerHTML = items.length ?
+      items.map(item => `
+        <div class="import-list-item">
+          <div class="thumb-s">${iconMap[item.type] || '📁'}</div>
+          <div style="flex:1;"><div class="ii-title">${item.name}</div><div class="ii-status status-ok">✓ وارد شده</div></div>
+        </div>
+      `).join('') :
+      '<div style="color:var(--text-3);font-size:12px;padding:10px 0;">هیچ فایلی وارد نشده</div>';
+  }
+
+  // ============================================================
+  //  TOAST & SECURITY
+  // ============================================================
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'PrintScreen') { e.preventDefault(); showToast('⚠️ اسکرین‌شات ممنوع'); }
+    // Disable spacebar and arrow keys for media control
+    if (e.target.closest('.player-video') || e.target.closest('.player-shell')) {
+      if (e.key === ' ' || e.key.startsWith('Arrow')) {
+        e.preventDefault();
+        return false;
+      }
+    }
+  });
+  document.addEventListener('contextmenu', e => {
+    if (e.target.closest('.player-video') || e.target.closest('.pdf-page') || e.target.closest('.card-thumb')) {
+      e.preventDefault(); showToast('⚠️ راست‌کلیک ممنوع');
+    }
+  });
+
+  // ============================================================
+  //  INIT
+  // ============================================================
+  window.addEventListener('load', () => {
+    loadData();
+    // Ensure sample files are always in library
+    SAMPLE_FILES.forEach(sample => {
+      if (!library.find(f => f.id === sample.id)) {
+        library.push({ ...sample });
+      }
+    });
+    if (currentUser) {
+      document.getElementById('licenseEmailInput').value = currentUser.email;
+    }
+    updateImportList();
+    updateLicenseUI();
+    updateWatermarks();
+    renderLibrary();
+    updateProfileUI();
+    // Show dashboard by default
+    switchTab('dashboard');
+    // Google Sign-In
+    if (window.google) {
+      window.google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleLogin });
+      window.google.accounts.id.renderButton(document.querySelector('.g_id_signin'), {
+        type: 'standard', shape: 'rectangular', theme: 'outline', text: 'signin_with', size: 'large'
+      });
+    }
+  });
+
+  // Expose functions globally
+  window.switchTab = switchTab;
+  window.importFile = importFile;
+  window.openItem = openItem;
+  window.togglePlay = togglePlay;
+  window.selectPlan = selectPlan;
+  window.copyCardNumber = copyCardNumber;
+  window.submitPayment = submitPayment;
+  window.updateLicense = updateLicense;
+  window.showLicenseStatus = showLicenseStatus;
+  window.filterCards = filterCards;
+  window.showToast = showToast;
+  window.nextPdfPage = nextPdfPage;
+  window.prevPdfPage = prevPdfPage;
+  window.handleGoogleLogin = handleGoogleLogin;
+  window.logout = logout;
+  window.initPlayer = initPlayer;
+</script>
+
+</body>
+</html>
