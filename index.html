@@ -24,11 +24,8 @@
         }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; background: #05060A; color: var(--text-main); overflow: hidden; position: fixed; top: 0; left: 0; }
         .app-frame { width: 100vw; height: 100vh; height: calc(100vh - var(--safe-top) - var(--safe-bottom)); background: var(--bg-app); display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        /* HEADER - بدون دکمه لایسنس و تم */
-        .header { height: 44px; padding: 0 16px; display: flex; align-items: center; justify-content: flex-end; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); flex-shrink: 0; z-index: 10; }
-        .header-actions { display: flex; gap: 14px; align-items: center; }
         .icon-btn { background: none; border: none; color: var(--text-main); font-size: 20px; cursor: pointer; display: flex; align-items: center; padding: 4px; }
-        .content-area { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 60px; }
+        .content-area { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 60px; padding-top: var(--safe-top); }
         .content-area::-webkit-scrollbar { display: none; }
         /* STORIES - ردیف اول */
         .stories-bar { display: flex; gap: 14px; padding: 12px 14px 10px; overflow-x: auto; border-bottom: 1px solid var(--border-color); background: var(--bg-surface); scrollbar-width: none; flex-shrink: 0; }
@@ -137,24 +134,33 @@
            AUDIO PLAYER — "Mezzo" inspired: elegant, artwork-forward
            ================================================================ */
         .audio-player-mezzo { display: flex; flex-direction: column; height: 100%; background: radial-gradient(120% 90% at 50% -10%, #23264a 0%, #14152b 46%, #0b0c1b 100%); padding: 18px 20px; overflow-y: auto; }
+        [data-theme="light"] .audio-player-mezzo { background: radial-gradient(120% 90% at 50% -10%, #EDEFFB 0%, #F5F6FA 46%, #FFFFFF 100%); }
         .audio-player-mezzo .mezzo-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
         .audio-player-mezzo .mezzo-topbar .mz-label { font-size: 10.5px; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; }
+        [data-theme="light"] .audio-player-mezzo .mezzo-topbar .mz-label { color: rgba(20,20,30,0.4); }
         .audio-player-mezzo .artwork-wrap { position: relative; width: 100%; aspect-ratio: 1/1; margin-bottom: 22px; }
         .audio-player-mezzo .artwork { width: 100%; height: 100%; border-radius: 20px; background: linear-gradient(145deg, #2a2d55, #1a1b33); display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 50px -12px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.05) inset; position: relative; overflow: hidden; }
+        [data-theme="light"] .audio-player-mezzo .artwork { background: linear-gradient(145deg, #E4E7F7, #D2D6EE); box-shadow: 0 20px 50px -12px rgba(40,40,80,0.2), 0 0 0 1px rgba(0,0,0,0.04) inset; }
         .audio-player-mezzo .artwork svg { width: 30%; height: 30%; color: rgba(255,255,255,0.18); }
+        [data-theme="light"] .audio-player-mezzo .artwork svg { color: rgba(40,40,80,0.22); }
         .audio-player-mezzo .artwork.spinning { animation: mzRotate 18s linear infinite; }
         .audio-player-mezzo .artwork.spinning.paused { animation-play-state: paused; }
         @keyframes mzRotate { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
         .audio-player-mezzo .track-info { text-align: center; margin-bottom: 18px; }
         .audio-player-mezzo .track-info h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        [data-theme="light"] .audio-player-mezzo .track-info h3 { color: #1C1C1E; }
         .audio-player-mezzo .track-info p { font-size: 12px; color: rgba(255,255,255,0.5); }
+        [data-theme="light"] .audio-player-mezzo .track-info p { color: rgba(20,20,30,0.5); }
         .audio-player-mezzo .progress-section { margin-bottom: 20px; }
         .audio-player-mezzo .progress-section .pbar { height: 4px; background: rgba(255,255,255,0.14); }
+        [data-theme="light"] .audio-player-mezzo .progress-section .pbar { background: rgba(20,20,30,0.1); }
         .audio-player-mezzo .progress-section .fill { background: var(--gold); }
         .audio-player-mezzo .progress-section .knob { width: 12px; height: 12px; background: var(--gold); box-shadow: 0 0 0 4px rgba(232,169,59,0.18); }
         .audio-player-mezzo .progress-section .time-row { display: flex; justify-content: space-between; font-size: 10.5px; color: rgba(255,255,255,0.45); margin-top: 6px; font-variant-numeric: tabular-nums; }
+        [data-theme="light"] .audio-player-mezzo .progress-section .time-row { color: rgba(20,20,30,0.5); }
         .audio-player-mezzo .controls-row { display: flex; justify-content: center; align-items: center; gap: 22px; margin-bottom: 18px; }
         .audio-player-mezzo .icon-btn { background: none; border: none; cursor: pointer; -webkit-tap-highlight-color: transparent; color: rgba(255,255,255,0.65); display: flex; align-items: center; justify-content: center; padding: 8px; border-radius: 50%; }
+        [data-theme="light"] .audio-player-mezzo .icon-btn { color: rgba(20,20,30,0.65); }
         .audio-player-mezzo .icon-btn svg { width: 21px; height: 21px; }
         .audio-player-mezzo .icon-btn.mz-active { color: var(--gold); }
         .audio-player-mezzo .icon-btn.play-main { width: 58px; height: 58px; background: var(--gold); color: #1a1305; box-shadow: 0 8px 22px -6px rgba(232,169,59,0.55); }
@@ -162,17 +168,23 @@
         .audio-player-mezzo .icon-btn.skip svg { width: 24px; height: 24px; }
         .audio-player-mezzo .mz-secondary-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 16px; }
         .audio-player-mezzo .mz-sec-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600; padding: 7px 13px; border-radius: 9px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: 'Vazirmatn', sans-serif; }
+        [data-theme="light"] .audio-player-mezzo .mz-sec-btn { background: rgba(20,20,30,0.045); border-color: rgba(20,20,30,0.08); color: rgba(20,20,30,0.65); }
         .audio-player-mezzo .mz-sec-btn svg { width: 14px; height: 14px; }
         .audio-player-mezzo .mz-sec-btn.mz-active { background: rgba(232,169,59,0.15); border-color: rgba(232,169,59,0.35); color: var(--gold); }
         .audio-player-mezzo .mz-volume-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding: 0 4px; }
         .audio-player-mezzo .mz-volume-row svg { width: 16px; height: 16px; color: rgba(255,255,255,0.45); flex-shrink: 0; }
+        [data-theme="light"] .audio-player-mezzo .mz-volume-row svg { color: rgba(20,20,30,0.5); }
         .audio-player-mezzo .mz-volume-track { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.14); position: relative; cursor: pointer; }
+        [data-theme="light"] .audio-player-mezzo .mz-volume-track { background: rgba(20,20,30,0.1); }
         .audio-player-mezzo .mz-volume-fill { position: absolute; right: 0; top: 0; bottom: 0; border-radius: 3px; background: rgba(255,255,255,0.55); width: 100%; }
+        [data-theme="light"] .audio-player-mezzo .mz-volume-fill { background: rgba(20,20,30,0.55); }
         .audio-player-mezzo .mz-volume-track .knob { width: 10px; height: 10px; background: #fff; }
+        [data-theme="light"] .audio-player-mezzo .mz-volume-track .knob { background: #1C1C1E; }
         .audio-player-mezzo .eq-bar { display: flex; justify-content: center; align-items: flex-end; gap: 4px; height: 34px; margin-bottom: 16px; opacity: 0.85; }
         .audio-player-mezzo .eq-bar .bar { width: 4px; height: 22%; background: linear-gradient(to top, var(--gold), #f5cf85); border-radius: 3px; animation: none; }
         @keyframes eqPulse { 0% { height: 18%; } 100% { height: 100%; } }
         .audio-player-mezzo .mz-close { position: absolute; top: 14px; left: 16px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; }
+        [data-theme="light"] .audio-player-mezzo .mz-close { background: rgba(20,20,30,0.06); color: #1C1C1E; }
         .audio-player-mezzo .mz-close svg { width: 15px; height: 15px; }
 
         /* ================================================================
@@ -275,7 +287,43 @@
         .saved-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
         .saved-item .saved-title { padding: 6px 8px; font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         @media (max-width: 480px) { .app-frame { height: 100vh; } }
-        @media (orientation: landscape) { .player-video { aspect-ratio: 16/9; } }
+
+        /* ================================================================
+           LANDSCAPE MODE — پشتیبانی کامل از حالت افقی، هم برای کل اپ و هم
+           به‌صورت اختصاصی برای هر پلیر (ویدیو/صوت/PDF/تصویر)
+           ================================================================ */
+        @media (orientation: landscape) {
+            .navbar { height: 44px; }
+            .navbar span { display: none; }
+            .navbar i { width: 20px; height: 20px; }
+            .content-area { padding-bottom: 48px; }
+        }
+        /* ویدیو در لندسکیپ: تمام‌صفحه، navbar و اطلاعات پایین مخفی می‌شوند */
+        @media (orientation: landscape) {
+            .player-shell.landscape-active { position: fixed; inset: 0; z-index: 500; height: 100vh; }
+            .player-shell.landscape-active .player-video { aspect-ratio: unset; width: 100%; height: 100vh; }
+            .player-shell.landscape-active .player-info { display: none; }
+            body.player-fullscreen-landscape .navbar { display: none; }
+        }
+        /* صوت در لندسکیپ: چیدمان افقی — آرتورک کوچک‌تر سمت راست، کنترل‌ها سمت چپ */
+        @media (orientation: landscape) {
+            .audio-player-mezzo.landscape-layout { flex-direction: row; align-items: center; gap: 24px; padding: 14px 24px; overflow: hidden; }
+            .audio-player-mezzo.landscape-layout .mezzo-topbar { display: none; }
+            .audio-player-mezzo.landscape-layout .artwork-wrap { width: 40%; max-width: 220px; margin-bottom: 0; flex-shrink: 0; }
+            .audio-player-mezzo.landscape-layout .mz-body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+            .audio-player-mezzo.landscape-layout .eq-bar { height: 22px; margin-bottom: 10px; }
+            .audio-player-mezzo.landscape-layout .controls-row { margin-bottom: 10px; }
+            .audio-player-mezzo.landscape-layout .mz-secondary-row { margin-bottom: 8px; }
+        }
+        /* PDF در لندسکیپ: نوار ابزار جمع‌وجورتر برای فضای بیشتر به صفحه */
+        @media (orientation: landscape) {
+            .pdf-topbar { padding: 6px 12px; }
+            .pdf-bottombar { padding: 6px 14px; }
+        }
+        /* تصویر: در لندسکیپ خودش را با ابعاد جدید container تطبیق می‌دهد (object-fit: contain کافی است) */
+
+        /* دکمه‌ی چرخش دستی حالت لندسکیپ برای هر پلیر — حتی اگر auto-rotate گوشی خاموش باشد */
+        .rotate-toggle-btn { position: absolute; z-index: 7; }
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
@@ -285,13 +333,6 @@
 
 <div class="app-frame" id="app">
     <div id="toast" class="toast"></div>
-
-    <!-- HEADER - بدون دکمه لایسنس و تم -->
-    <div class="header">
-        <div class="header-actions">
-            <!-- خالی -->
-        </div>
-    </div>
 
     <div class="content-area" id="mainArea"></div>
 
@@ -800,6 +841,28 @@
                 `).join('') :
                 '<div style="grid-column:1/-1;text-align:center;color:var(--text-sub);padding:20px;font-size:12px;">هیچ آیتمی ذخیره نشده است</div>';
         }
+        updateStoryThumbnails();
+    }
+
+    // به‌روزرسانی تصویر حلقه‌های استوری بالای صفحه به «آخرین فایل آپلودشده» در هر دسته،
+    // بدون رندر مجدد کل صفحه‌ی خانه (تا فیلتر فعال/اسکرول کاربر به‌هم نریزد)
+    function updateStoryThumbnails() {
+        const ring = document.querySelector('#chipsContainer');
+        if (!ring) return;
+        const map = { video: 1, audio: 2, pdf: 3, image: 4, unseen: 5 };
+        for (const type in map) {
+            let latest = null;
+            for (let i = STATE.library.length - 1; i >= 0; i--) {
+                const it = STATE.library[i];
+                if (type === 'unseen') { if (!it.watched && it.thumb) { latest = it.thumb; break; } }
+                else if (it.type === type && it.thumb) { latest = it.thumb; break; }
+            }
+            if (latest) {
+                const item = ring.children[map[type]];
+                const img = item?.querySelector('.story-ring img');
+                if (img && img.src !== latest) img.src = latest;
+            }
+        }
     }
 
     function getFilteredItems() {
@@ -969,6 +1032,7 @@
                             <div class="v-top-right">
                                 <button class="v-icon-btn" id="vLockToggle" onclick="toggleVideoLock()"><i data-lucide="lock-open"></i></button>
                                 <button class="v-icon-btn" onclick="togglePipMode()"><i data-lucide="picture-in-picture-2"></i></button>
+                                <button class="v-icon-btn" id="vRotateBtn" onclick="toggleVideoLandscape()"><i data-lucide="rotate-cw-square"></i></button>
                                 <button class="v-icon-btn" onclick="toggleFullscreen()"><i data-lucide="maximize"></i></button>
                             </div>
                         </div>
@@ -1038,6 +1102,7 @@
             mainArea.innerHTML = `
                 <div class="audio-player-mezzo" id="audioPlayerMezzo">
                     <button class="mz-close" onclick="switchTab('home')"><i data-lucide="chevron-down"></i></button>
+                    <button class="mz-close" id="audioRotateBtn" style="left:auto;right:16px;" onclick="toggleAudioLandscape()"><i data-lucide="rotate-cw-square"></i></button>
                     <div class="mezzo-topbar">
                         <span class="mz-label">در حال پخش</span>
                         <span class="mz-label" id="audioTrackPos">Mezzo</span>
@@ -1045,43 +1110,45 @@
                     <div class="artwork-wrap">
                         <div class="artwork" id="audioArtwork"><i data-lucide="music-2"></i></div>
                     </div>
-                    <div class="track-info">
-                        <h3 id="audioTitle">${item.name}</h3>
-                        <p id="audioArtist">فرادانش</p>
-                    </div>
-                    <div class="progress-section">
-                        <div class="pbar" id="audioProgressBar">
-                            <div class="fill" id="aSeekFill" style="width:0%;"></div>
-                            <div class="knob" id="aSeekKnob" style="right:0%;"></div>
+                    <div class="mz-body">
+                        <div class="track-info">
+                            <h3 id="audioTitle">${item.name}</h3>
+                            <p id="audioArtist">فرادانش</p>
                         </div>
-                        <div class="time-row">
-                            <span id="aCurrent">۰۰:۰۰</span>
-                            <span id="aDuration">۰۰:۰۰</span>
+                        <div class="progress-section">
+                            <div class="pbar" id="audioProgressBar">
+                                <div class="fill" id="aSeekFill" style="width:0%;"></div>
+                                <div class="knob" id="aSeekKnob" style="right:0%;"></div>
+                            </div>
+                            <div class="time-row">
+                                <span id="aCurrent">۰۰:۰۰</span>
+                                <span id="aDuration">۰۰:۰۰</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="eq-bar" id="eqBar">
-                        ${Array(16).fill('<div class="bar"></div>').join('')}
-                    </div>
-                    <div class="controls-row">
-                        <button class="icon-btn skip" onclick="audioPrev()"><i data-lucide="skip-back"></i></button>
-                        <button class="icon-btn" onclick="stepAudio(-10)"><i data-lucide="rotate-ccw"></i></button>
-                        <button class="icon-btn play-main" id="audioPlayBtn" onclick="toggleAudioPlay()"><i data-lucide="play"></i></button>
-                        <button class="icon-btn" onclick="stepAudio(10)"><i data-lucide="rotate-cw"></i></button>
-                        <button class="icon-btn skip" onclick="audioNext()"><i data-lucide="skip-forward"></i></button>
-                    </div>
-                    <div class="mz-secondary-row">
-                        <button class="mz-sec-btn" id="audioShuffleBtn" onclick="audioShuffle()"><i data-lucide="shuffle"></i>شافل</button>
-                        <button class="mz-sec-btn" id="audioRepeatBtn" onclick="audioRepeat()"><i data-lucide="repeat"></i>تکرار</button>
-                        <button class="mz-sec-btn" id="audioEqBtn" onclick="audioEqToggle()"><i data-lucide="sliders-horizontal"></i>اکولایزر</button>
-                    </div>
-                    <div class="mz-volume-row">
-                        <i data-lucide="volume-2" id="audioVolIcon" onclick="toggleAudioMute()" style="cursor:pointer;"></i>
-                        <div class="mz-volume-track" id="audioVolumeBar">
-                            <div class="mz-volume-fill" id="aVolFill"></div>
-                            <div class="knob" id="aVolKnob" style="right:100%;"></div>
+                        <div class="eq-bar" id="eqBar">
+                            ${Array(16).fill('<div class="bar"></div>').join('')}
                         </div>
+                        <div class="controls-row">
+                            <button class="icon-btn skip" onclick="audioPrev()"><i data-lucide="skip-back"></i></button>
+                            <button class="icon-btn" onclick="stepAudio(-10)"><i data-lucide="rotate-ccw"></i></button>
+                            <button class="icon-btn play-main" id="audioPlayBtn" onclick="toggleAudioPlay()"><i data-lucide="play"></i></button>
+                            <button class="icon-btn" onclick="stepAudio(10)"><i data-lucide="rotate-cw"></i></button>
+                            <button class="icon-btn skip" onclick="audioNext()"><i data-lucide="skip-forward"></i></button>
+                        </div>
+                        <div class="mz-secondary-row">
+                            <button class="mz-sec-btn" id="audioShuffleBtn" onclick="audioShuffle()"><i data-lucide="shuffle"></i>شافل</button>
+                            <button class="mz-sec-btn" id="audioRepeatBtn" onclick="audioRepeat()"><i data-lucide="repeat"></i>تکرار</button>
+                            <button class="mz-sec-btn" id="audioEqBtn" onclick="audioEqToggle()"><i data-lucide="sliders-horizontal"></i>اکولایزر</button>
+                        </div>
+                        <div class="mz-volume-row">
+                            <i data-lucide="volume-2" id="audioVolIcon" onclick="toggleAudioMute()" style="cursor:pointer;"></i>
+                            <div class="mz-volume-track" id="audioVolumeBar">
+                                <div class="mz-volume-fill" id="aVolFill"></div>
+                                <div class="knob" id="aVolKnob" style="right:100%;"></div>
+                            </div>
+                        </div>
+                        <div class="warn-note"><i data-lucide="shield-alert"></i><span>ضبط صفحه و اسکرین‌شات ممنوع است.</span></div>
                     </div>
-                    <div class="warn-note"><i data-lucide="shield-alert"></i><span>ضبط صفحه و اسکرین‌شات ممنوع است.</span></div>
                 </div>
             `;
             lucide.createIcons();
@@ -1122,7 +1189,10 @@
                     <div class="iv-topbar">
                         <div class="v-icon-btn" style="background:rgba(255,255,255,0.08);" onclick="switchTab('home')"><i data-lucide="chevron-right"></i></div>
                         <span class="iv-title">${item.name}</span>
-                        <div class="v-icon-btn" style="background:rgba(255,255,255,0.08);" onclick="toggleImageFullscreen()"><i data-lucide="maximize"></i></div>
+                        <div style="display:flex;gap:6px;">
+                            <div class="v-icon-btn" style="background:rgba(255,255,255,0.08);" onclick="toggleImageLandscape()"><i data-lucide="rotate-cw-square"></i></div>
+                            <div class="v-icon-btn" style="background:rgba(255,255,255,0.08);" onclick="toggleImageFullscreen()"><i data-lucide="maximize"></i></div>
+                        </div>
                     </div>
                     <div class="image-container" id="imageContainer">
                         <span class="iv-zoom-badge" id="ivZoomBadge">۱۰۰٪</span>
@@ -1164,6 +1234,44 @@
     }
 
     // ================================================================
+    // UTIL: نوار پیشرفت قابل کشیدن (drag) با دست — برای ویدئو و صوت
+    // با یک تماس (کلیک/تپ) هم مقدار را می‌گیرد و هم می‌شود روی آن کشید تا هر لحظه‌ای انتخاب شود.
+    // ================================================================
+    function setupSeekBarDrag(barEl, onSeek, isLockedFn) {
+        if (!barEl || barEl._seekBound) return;
+        barEl._seekBound = true;
+        let dragging = false;
+        function pctFromEvent(e) {
+            const rect = barEl.getBoundingClientRect();
+            const clientX = e.touches ? (e.touches[0] || e.changedTouches[0]).clientX : e.clientX;
+            return Math.max(0, Math.min(1, (rect.right - clientX) / rect.width));
+        }
+        function start(e) {
+            if (isLockedFn && isLockedFn()) return;
+            dragging = true;
+            if (typeof scheduleHideUi === 'function') scheduleHideUi();
+            onSeek(pctFromEvent(e));
+        }
+        function move(e) {
+            if (!dragging) return;
+            if (isLockedFn && isLockedFn()) { dragging = false; return; }
+            e.preventDefault();
+            if (typeof scheduleHideUi === 'function') scheduleHideUi();
+            onSeek(pctFromEvent(e));
+        }
+        function end() { dragging = false; }
+
+        barEl.addEventListener('touchstart', start, { passive: true });
+        barEl.addEventListener('touchmove', move, { passive: false });
+        barEl.addEventListener('touchend', end, { passive: true });
+        barEl.addEventListener('touchcancel', end, { passive: true });
+
+        barEl.addEventListener('mousedown', start);
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', end);
+    }
+
+    // ================================================================
     // VIDEO PLAYER
     // ================================================================
     let videoSpeed = 1.0;
@@ -1189,11 +1297,14 @@
         isVideoLocked = false;
         videoSpeedIdx = 2;
         videoVolume = 1.0; videoMuted = false; videoBrightness = 0.7;
+        videoLandscapeActive = false;
+        document.body.classList.remove('player-fullscreen-landscape');
         video.volume = 1.0;
         video.playbackRate = 1.0;
         video.load();
         updateVideoFilter();
         renderVolIcon();
+        setupPhysicalOrientationSync();
 
         video.addEventListener('loadedmetadata', () => {
             document.getElementById('vDuration').textContent = formatTime(video.duration);
@@ -1230,13 +1341,21 @@
 
         document.addEventListener('visibilitychange', videoVisibilityHandler);
 
-        document.getElementById('progressBar').addEventListener('click', (e) => {
+        // هر تعامل مستقیم با نوار پایین/بالا/کنترل مرکزی (سرعت، تناسب، قفل، seek و...)
+        // تایمر مخفی‌سازی خودکار را ریست می‌کند تا وسط کار کاربر UI ناگهان محو نشود.
+        ['vTopBar','vCenterControls','vBottomBar'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('touchstart', scheduleHideUi, { passive: true });
+            el.addEventListener('mousedown', scheduleHideUi);
+            el.addEventListener('click', scheduleHideUi);
+        });
+
+        setupSeekBarDrag(document.getElementById('progressBar'), (pct) => {
             if (isVideoLocked || !video.duration) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const pct = Math.max(0, Math.min(1, (rect.right - e.clientX) / rect.width));
             video.currentTime = pct * video.duration;
             updateVideoProgress();
-        });
+        }, () => isVideoLocked);
 
         video.pause();
         setVideoPlayIcon(false);
@@ -1366,6 +1485,136 @@
         }
     }
 
+    // ================================================================
+    // LANDSCAPE — قفل/چرخش صریح حالت افقی برای هر پلیر، مستقل از تنظیمات
+    // چرخش خودکار گوشی (که در بسیاری از دستگاه‌ها/APKها خاموش است)
+    // ================================================================
+    async function requestLandscapeLock() {
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+                return true;
+            }
+        } catch(e) { /* برخی مرورگرها/WebViewها بدون تمام‌صفحه قفل نمی‌کنند */ }
+        return false;
+    }
+    async function requestPortraitUnlock() {
+        try {
+            if (screen.orientation && screen.orientation.unlock) { screen.orientation.unlock(); return; }
+            if (screen.orientation && screen.orientation.lock) { await screen.orientation.lock('portrait'); }
+        } catch(e) {}
+    }
+
+    // هماهنگ‌سازی خودکار ظاهر پلیر ویدئو با چرخش فیزیکی گوشی — کاربری که auto-rotate روشن
+    // دارد نیازی به لمس دکمه ندارد؛ صرفاً کلاس CSS مربوطه اضافه/حذف می‌شود (بدون قفل صفحه).
+    let physicalOrientationMql = null;
+    function setupPhysicalOrientationSync() {
+        if (!physicalOrientationMql) {
+            physicalOrientationMql = window.matchMedia('(orientation: landscape)');
+            const handler = (e) => {
+                const shell = document.querySelector('.player-shell');
+                const video = document.getElementById('playerVideo');
+                if (!shell || !video) return; // پلیر ویدئو در صفحه نیست
+                if (e.matches && !videoLandscapeActive) {
+                    videoLandscapeActive = true;
+                    shell.classList.add('landscape-active');
+                    document.body.classList.add('player-fullscreen-landscape');
+                } else if (!e.matches && videoLandscapeActive) {
+                    videoLandscapeActive = false;
+                    shell.classList.remove('landscape-active');
+                    document.body.classList.remove('player-fullscreen-landscape');
+                }
+            };
+            physicalOrientationMql.addEventListener('change', handler);
+        }
+        // اگر همین الان (لحظه‌ی باز شدن پلیر) گوشی از قبل افقی است، بلافاصله چیدمان را هماهنگ کن
+        if (physicalOrientationMql.matches) {
+            const shell = document.querySelector('.player-shell');
+            if (shell) {
+                videoLandscapeActive = true;
+                shell.classList.add('landscape-active');
+                document.body.classList.add('player-fullscreen-landscape');
+            }
+        }
+    }
+
+    let videoLandscapeActive = false;
+    async function toggleVideoLandscape() {
+        const shell = document.querySelector('.player-shell');
+        const viewport = document.getElementById('videoViewport');
+        videoLandscapeActive = !videoLandscapeActive;
+        if (videoLandscapeActive) {
+            shell?.classList.add('landscape-active');
+            document.body.classList.add('player-fullscreen-landscape');
+            const locked = await requestLandscapeLock();
+            if (!locked && viewport && !document.fullscreenElement) {
+                // اگر قفل مستقیم ممکن نشد، ابتدا وارد تمام‌صفحه شویم تا قفل چرخش مجاز شود
+                try { await viewport.requestFullscreen(); await requestLandscapeLock(); } catch(e) {}
+            }
+            showToast('حالت افقی فعال شد');
+        } else {
+            shell?.classList.remove('landscape-active');
+            document.body.classList.remove('player-fullscreen-landscape');
+            await requestPortraitUnlock();
+            if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+            showToast('حالت عمودی فعال شد');
+        }
+    }
+
+    // PDF: چرخش صریح به لندسکیپ — صفحه دوباره با اندازه‌ی جدید رندر می‌شود تا بهترین کیفیت را بدهد
+    let pdfLandscapeActive = false;
+    async function togglePdfLandscape() {
+        pdfLandscapeActive = !pdfLandscapeActive;
+        if (pdfLandscapeActive) {
+            const locked = await requestLandscapeLock();
+            if (!locked) {
+                const shell = document.querySelector('.pdf-shell');
+                try { await shell?.requestFullscreen(); await requestLandscapeLock(); } catch(e) {}
+            }
+            showToast('حالت افقی PDF فعال شد');
+        } else {
+            await requestPortraitUnlock();
+            if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+            showToast('حالت عمودی فعال شد');
+        }
+        // پس از چرخش، ابعاد ویوپورت تغییر می‌کند؛ صفحه را با اندازه‌ی جدید دوباره رندر می‌کنیم
+        setTimeout(() => { if (STATE.pdfDoc) renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum); }, 350);
+    }
+
+    // تصویر: چرخش صریح به لندسکیپ — برای دیدن تصاویر پهن/پانوراما در بهترین حالت
+    let imageLandscapeActive = false;
+    async function toggleImageLandscape() {
+        imageLandscapeActive = !imageLandscapeActive;
+        if (imageLandscapeActive) {
+            const locked = await requestLandscapeLock();
+            if (!locked) {
+                const viewer = document.getElementById('imageViewer');
+                try { await viewer?.requestFullscreen(); await requestLandscapeLock(); } catch(e) {}
+            }
+            showToast('حالت افقی فعال شد');
+        } else {
+            await requestPortraitUnlock();
+            if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+            showToast('حالت عمودی فعال شد');
+        }
+    }
+
+    // صوت: چرخش صریح به لندسکیپ — چیدمان به‌صورت افقی (آرتورک کنار کنترل‌ها) تغییر می‌کند
+    let audioLandscapeActive = false;
+    async function toggleAudioLandscape() {
+        const shell = document.getElementById('audioPlayerMezzo');
+        audioLandscapeActive = !audioLandscapeActive;
+        if (audioLandscapeActive) {
+            shell?.classList.add('landscape-layout');
+            await requestLandscapeLock();
+            showToast('حالت افقی فعال شد');
+        } else {
+            shell?.classList.remove('landscape-layout');
+            await requestPortraitUnlock();
+            showToast('حالت عمودی فعال شد');
+        }
+    }
+
     let pipContainer = null;
     let pipVideo = null;
     function togglePipMode() {
@@ -1400,6 +1649,48 @@
         if (!layer) return;
         let lastTapTime = 0, lastTapZone = null;
         let touchMoved = false;
+        let rafPending = false;
+        let pendingUpdate = null;
+
+        // کش عناصر DOM یک‌بار، به‌جای getElementById مکرر در هر touchmove (رفع لگ روی WebView)
+        const els = {
+            seekFlashL: document.getElementById('vSeekFlashL'),
+            seekFlashR: document.getElementById('vSeekFlashR'),
+            seekFlashLTxt: document.getElementById('vSeekFlashLTxt'),
+            seekFlashRTxt: document.getElementById('vSeekFlashRTxt'),
+            brightIndicator: document.getElementById('vBrightIndicator'),
+            brightFill: document.getElementById('vBrightFill'),
+            brightVal: document.getElementById('vBrightVal'),
+            volIndicator: document.getElementById('vVolIndicator'),
+            volFill: document.getElementById('vVolFill'),
+            volVal: document.getElementById('vVolVal'),
+        };
+
+        function flushUpdate() {
+            rafPending = false;
+            if (!pendingUpdate) return;
+            const u = pendingUpdate; pendingUpdate = null;
+            if (u.mode === 'seek') {
+                video.currentTime = u.newTime;
+                const flash = u.isFwd ? els.seekFlashR : els.seekFlashL;
+                const flashTxt = u.isFwd ? els.seekFlashRTxt : els.seekFlashLTxt;
+                if (flash && flashTxt) { flashTxt.textContent = u.label; flash.classList.add('show'); }
+            } else if (u.mode === 'brightness') {
+                updateVideoFilter();
+                if (els.brightFill) els.brightFill.style.height = u.pct + '%';
+                if (els.brightVal) els.brightVal.textContent = Math.round(u.pct) + '%';
+                if (els.brightIndicator) els.brightIndicator.classList.add('show');
+            } else if (u.mode === 'volume') {
+                if (els.volFill) els.volFill.style.height = u.pct + '%';
+                if (els.volVal) els.volVal.textContent = Math.round(u.pct) + '%';
+                if (els.volIndicator) els.volIndicator.classList.add('show');
+                renderVolIcon();
+            }
+        }
+        function scheduleUpdate(u) {
+            pendingUpdate = u;
+            if (!rafPending) { rafPending = true; requestAnimationFrame(flushUpdate); }
+        }
 
         layer.addEventListener('touchstart', (e) => {
             if (isVideoLocked) return;
@@ -1424,7 +1715,11 @@
                     } else {
                         const zoneX = vGestureStartX - rect.left;
                         vGestureMode = zoneX < rect.width / 2 ? 'brightness' : 'volume';
+                        // نقطه‌ی شروع را دقیقاً از همین لحظه (نه از نقطه‌ی touchstart) می‌گیریم
+                        // تا وقتی مقدار به ۰ یا ۱۰۰٪ می‌رسد و انگشت هنوز کشیده می‌شود، برگرداندن
+                        // انگشت بلافاصله واکنش بدهد و «قفل شدن / پایین می‌روم بالا نمی‌آید» رخ ندهد.
                         vGestureStartVal = vGestureMode === 'brightness' ? videoBrightness : videoVolume;
+                        vGestureStartY = touch.clientY;
                     }
                 }
             }
@@ -1432,43 +1727,37 @@
                 e.preventDefault();
                 const deltaSec = (dx / rect.width) * 90;
                 const newTime = Math.max(0, Math.min(video.duration, vGestureStartTime + deltaSec));
-                video.currentTime = newTime;
                 const isFwd = deltaSec >= 0;
-                const flash = document.getElementById(isFwd ? 'vSeekFlashR' : 'vSeekFlashL');
-                const flashTxt = document.getElementById(isFwd ? 'vSeekFlashRTxt' : 'vSeekFlashLTxt');
-                if (flash && flashTxt) {
-                    flashTxt.textContent = formatTime(Math.abs(deltaSec)) + ' ' + (isFwd ? 'جلو' : 'عقب');
-                    flash.classList.add('show');
-                }
+                scheduleUpdate({ mode: 'seek', newTime, isFwd, label: formatTime(Math.abs(deltaSec)) + ' ' + (isFwd ? 'جلو' : 'عقب') });
             } else if (vGestureMode === 'brightness') {
                 e.preventDefault();
-                const deltaPct = -dy / rect.height;
-                videoBrightness = Math.max(0, Math.min(1, vGestureStartVal + deltaPct));
-                updateVideoFilter();
-                const ind = document.getElementById('vBrightIndicator');
-                document.getElementById('vBrightFill').style.height = (videoBrightness * 100) + '%';
-                document.getElementById('vBrightVal').textContent = Math.round(videoBrightness * 100) + '%';
-                if (ind) ind.classList.add('show');
+                const dy2 = touch.clientY - vGestureStartY;
+                const deltaPct = -dy2 / rect.height;
+                const newVal = Math.max(0, Math.min(1, vGestureStartVal + deltaPct));
+                videoBrightness = newVal;
+                // اگر به کف/سقف رسیدیم، نقطه‌ی مرجع را همین‌جا "پین" می‌کنیم تا در ادامه‌ی کشیدن
+                // در همان جهت رشد نکند و برگشت انگشت بلافاصله اثر کند (رفع گیر کردن اسلایدر)
+                if (newVal === 0 || newVal === 1) { vGestureStartVal = newVal; vGestureStartY = touch.clientY; }
+                scheduleUpdate({ mode: 'brightness', pct: newVal * 100 });
             } else if (vGestureMode === 'volume') {
                 e.preventDefault();
-                const deltaPct = -dy / rect.height;
-                videoVolume = Math.max(0, Math.min(1, vGestureStartVal + deltaPct));
-                video.volume = videoVolume;
-                videoMuted = videoVolume === 0;
+                const dy2 = touch.clientY - vGestureStartY;
+                const deltaPct = -dy2 / rect.height;
+                const newVal = Math.max(0, Math.min(1, vGestureStartVal + deltaPct));
+                videoVolume = newVal;
+                video.volume = newVal;
+                videoMuted = newVal === 0;
                 video.muted = videoMuted;
-                const ind = document.getElementById('vVolIndicator');
-                document.getElementById('vVolFill').style.height = (videoVolume * 100) + '%';
-                document.getElementById('vVolVal').textContent = Math.round(videoVolume * 100) + '%';
-                if (ind) ind.classList.add('show');
-                renderVolIcon();
+                if (newVal === 0 || newVal === 1) { vGestureStartVal = newVal; vGestureStartY = touch.clientY; }
+                scheduleUpdate({ mode: 'volume', pct: newVal * 100 });
             }
         }, { passive: false });
 
         layer.addEventListener('touchend', (e) => {
-            document.getElementById('vSeekFlashL')?.classList.remove('show');
-            document.getElementById('vSeekFlashR')?.classList.remove('show');
-            document.getElementById('vBrightIndicator')?.classList.remove('show');
-            document.getElementById('vVolIndicator')?.classList.remove('show');
+            els.seekFlashL?.classList.remove('show');
+            els.seekFlashR?.classList.remove('show');
+            els.brightIndicator?.classList.remove('show');
+            els.volIndicator?.classList.remove('show');
 
             if (!touchMoved && !isVideoLocked) {
                 const zone = e.target.closest('.v-gesture-zone')?.dataset.zone || 'center';
@@ -1545,6 +1834,7 @@
             try { STATE.audioElement.pause(); STATE.audioElement.src = ''; STATE.audioElement.load(); } catch(e) {}
         }
         cancelAnimationFrame(audioRafId);
+        audioLandscapeActive = false;
 
         const audio = new Audio();
         audio.crossOrigin = 'anonymous';
@@ -1610,12 +1900,13 @@
 
         audio.addEventListener('contextmenu', e => e.preventDefault());
 
-        document.getElementById('audioProgressBar').addEventListener('click', (e) => {
+        setupSeekBarDrag(document.getElementById('audioProgressBar'), (pct) => {
             if (!audio.duration) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const pct = Math.max(0, Math.min(1, (rect.right - e.clientX) / rect.width));
             audio.currentTime = pct * audio.duration;
-        });
+            document.getElementById('aSeekFill').style.width = (pct*100) + '%';
+            document.getElementById('aSeekKnob').style.right = (pct*100) + '%';
+            document.getElementById('aCurrent').textContent = formatTime(pct * audio.duration);
+        }, () => false);
 
         const volumeBar = document.getElementById('audioVolumeBar');
         function setVolumeFromEvent(e) {
@@ -1774,6 +2065,7 @@
     function initImageViewer(src) {
         imageSrc = src;
         imageZoom = 1; imageRotation = 0; imagePanX = 0; imagePanY = 0; imageFlipX = 1;
+        imageLandscapeActive = false;
         updateImageTransform();
         const container = document.getElementById('imageContainer');
 
@@ -1889,6 +2181,7 @@
 
     async function loadPdf(item) {
         document.getElementById('pdfTitle').textContent = item.name || 'PDF';
+        pdfLandscapeActive = false;
         const loading = document.getElementById('pdfLoading');
         if (loading) loading.style.display = 'flex';
         try {
@@ -2130,6 +2423,13 @@
         if (pipContainer) { pipContainer.remove(); pipContainer = null; pipVideo = null; }
         clearTimeout(vUiHideTimer);
         document.removeEventListener('visibilitychange', videoVisibilityHandler);
+        // خروج از حالت لندسکیپ اختصاصی پلیر و آزادسازی قفل چرخش صفحه
+        if (videoLandscapeActive || pdfLandscapeActive || imageLandscapeActive || audioLandscapeActive) {
+            videoLandscapeActive = false; pdfLandscapeActive = false; imageLandscapeActive = false; audioLandscapeActive = false;
+            requestPortraitUnlock();
+        }
+        document.body.classList.remove('player-fullscreen-landscape');
+        if (document.fullscreenElement) { document.exitFullscreen().catch(()=>{}); }
         // توجه: صوت عمداً متوقف نمی‌شود تا کاربر بتواند حین گشت‌وگذار در برنامه به شنیدن ادامه دهد،
         // دقیقاً مانند رفتار پلیرهای صوتی حرفه‌ای (نظیر Mezzo). صدای جدید همیشه پیش از پخش،
         // نمونهٔ صوتی قبلی را به‌طور کامل متوقف و آزاد می‌کند (در initAudioPlayer) تا هرگز قاطی نشوند.
@@ -2137,31 +2437,50 @@
 
     function renderHome() {
         const mainArea = document.getElementById('mainArea');
+        // برای هر دسته، تصویر آخرین فایل آپلودشده از همان نوع را به‌عنوان تصویر حلقه‌ی استوری نشان می‌دهیم.
+        // اگر هنوز فایلی از آن نوع وجود نداشته باشد، تصویر پیش‌فرض همان دسته استفاده می‌شود.
+        // نکته: خودِ کلیک روی حلقه هنوز همان فیلترِ آن دسته را فعال می‌کند، نه پخش مستقیم آن فایل.
+        const defaultThumbs = {
+            all: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&h=200&fit=crop&crop=center',
+            video: 'https://images.unsplash.com/photo-1605648912125-6c29f71e9c06?w=200&h=200&fit=crop&crop=center',
+            audio: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=crop&crop=center',
+            pdf: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=200&h=200&fit=crop&crop=center',
+            image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=200&h=200&fit=crop&crop=center',
+            unseen: 'https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=200&h=200&fit=crop&crop=center',
+        };
+        function latestThumbFor(type) {
+            for (let i = STATE.library.length - 1; i >= 0; i--) {
+                const it = STATE.library[i];
+                if (type === 'unseen') { if (!it.watched && it.thumb) return it.thumb; }
+                else if (it.type === type && it.thumb) return it.thumb;
+            }
+            return defaultThumbs[type];
+        }
         mainArea.innerHTML = `
             <!-- STORIES - ردیف اول -->
             <div class="stories-bar" id="chipsContainer">
                 <div class="story-item active-filter" onclick="setFilter('all')">
-                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&h=200&fit=crop&crop=center" alt="همه"></div>
+                    <div class="story-ring"><img src="${defaultThumbs.all}" alt="همه"></div>
                     <div class="story-title">همه</div>
                 </div>
                 <div class="story-item" onclick="setFilter('video')">
-                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1605648912125-6c29f71e9c06?w=200&h=200&fit=crop&crop=center" alt="ویدیو"></div>
+                    <div class="story-ring"><img src="${latestThumbFor('video')}" alt="ویدیو"></div>
                     <div class="story-title">ویدیو</div>
                 </div>
                 <div class="story-item" onclick="setFilter('audio')">
-                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=crop&crop=center" alt="صوت"></div>
+                    <div class="story-ring"><img src="${latestThumbFor('audio')}" alt="صوت"></div>
                     <div class="story-title">صوت</div>
                 </div>
                 <div class="story-item" onclick="setFilter('pdf')">
-                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=200&h=200&fit=crop&crop=center" alt="PDF"></div>
+                    <div class="story-ring"><img src="${latestThumbFor('pdf')}" alt="PDF"></div>
                     <div class="story-title">PDF</div>
                 </div>
                 <div class="story-item" onclick="setFilter('image')">
-                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=200&h=200&fit=crop&crop=center" alt="تصویر"></div>
+                    <div class="story-ring"><img src="${latestThumbFor('image')}" alt="تصویر"></div>
                     <div class="story-title">تصویر</div>
                 </div>
                 <div class="story-item" onclick="setFilter('unseen')">
-                    <div class="story-ring"><img src="https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=200&h=200&fit=crop&crop=center" alt="دیده‌نشده"></div>
+                    <div class="story-ring"><img src="${latestThumbFor('unseen')}" alt="دیده‌نشده"></div>
                     <div class="story-title">دیده‌نشده</div>
                 </div>
             </div>
@@ -2335,6 +2654,7 @@
                         <button class="v-icon-btn" style="background:var(--bg-hover);color:var(--text-main);" onclick="pdfToggleSearch()"><i data-lucide="search"></i></button>
                         <button class="v-icon-btn" style="background:var(--bg-hover);color:var(--text-main);" onclick="pdfBookmark()"><i data-lucide="bookmark"></i></button>
                         <button class="v-icon-btn" style="background:var(--bg-hover);color:var(--text-main);" onclick="pdfToggleThumbs()"><i data-lucide="layout-grid"></i></button>
+                        <button class="v-icon-btn" style="background:var(--bg-hover);color:var(--text-main);" onclick="togglePdfLandscape()"><i data-lucide="rotate-cw-square"></i></button>
                     </div>
                 </div>
                 <div class="pdf-search-bar" id="pdfSearchBar">
@@ -2449,13 +2769,10 @@
         updateImportList();
         renderHome();
         lucide.createIcons();
+        // چرخش فیزیکی گوشی (نه فقط دکمه‌ی داخل‌برنامه‌ای) هم باید صفحه‌ی PDF را با ابعاد جدید
+        // دوباره رندر کند تا کیفیت و اندازه درست بماند؛ ویدئو با CSS خودش تطبیق می‌یابد.
         window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                const v = document.getElementById('playerVideo');
-                if (v) {
-                    v.style.objectFit = window.innerWidth > window.innerHeight ? 'contain' : 'cover';
-                }
-            }, 300);
+            setTimeout(() => { if (STATE.pdfDoc) renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum); }, 300);
         });
     });
 
@@ -2472,6 +2789,10 @@
     window.cycleVideoAspect = cycleVideoAspect;
     window.togglePipMode = togglePipMode;
     window.toggleFullscreen = toggleFullscreen;
+    window.toggleVideoLandscape = toggleVideoLandscape;
+    window.togglePdfLandscape = togglePdfLandscape;
+    window.toggleImageLandscape = toggleImageLandscape;
+    window.toggleAudioLandscape = toggleAudioLandscape;
     window.toggleAudioPlay = toggleAudioPlay;
     window.stepAudio = stepAudio;
     window.audioPrev = audioPrev;
