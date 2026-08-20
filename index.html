@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js'; }</script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', sans-serif; -webkit-tap-highlight-color: transparent; }
         :root {
@@ -51,11 +52,15 @@
         .post-media { width: 100%; aspect-ratio: 4/3; background: var(--bg-hover); position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
         .post-media img, .post-media video { width: 100%; height: 100%; object-fit: cover; }
         .badge-play { position: absolute; width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; }
-        /* ACTION GROUP - فقط بوکمارک در سمت چپ */
-        .post-actions { padding: 8px 14px; display: flex; justify-content: flex-start; align-items: center; }
-        .action-group { display: flex; gap: 14px; align-items: center; font-size: 20px; }
-        .action-group i { color: var(--text-sub); cursor: pointer; }
-        .post-meta-text { padding: 0 14px 10px; font-size: 10.5px; color: var(--text-sub); display: flex; justify-content: space-between; align-items: center; }
+        /* ACTION ROW - بوکمارک و درصد پیشرفت در یک ردیف واحد */
+        .post-actions { padding: 8px 14px 12px; display: flex; justify-content: space-between; align-items: center; }
+        .action-group { display: flex; gap: 14px; align-items: center; }
+        .action-group i { color: var(--text-sub); cursor: pointer; width: 20px; height: 20px; }
+        .post-progress-inline { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--text-sub); font-weight: 600; font-variant-numeric: tabular-nums; }
+        .post-progress-inline svg { width: 13px; height: 13px; }
+        .post-progress-inline.complete { color: var(--green); }
+        .post-progress-inline b { color: var(--text-main); font-weight: 700; }
+        .post-progress-inline.complete b { color: var(--green); }
         .explore-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px; }
         .explore-item { position: relative; aspect-ratio: 1/1; background: var(--bg-card); overflow: hidden; cursor: pointer; }
         .explore-item img { width: 100%; height: 100%; object-fit: cover; }
@@ -67,52 +72,153 @@
         .nav-btn.active { color: var(--text-main); }
         .nav-btn i { font-size: 24px; }
         .nav-btn span { display: none; }
-        /* PLAYER */
+        /* ================================================================
+           VIDEO PLAYER — MX Player inspired: minimal, gesture-driven, dark
+           ================================================================ */
         .player-shell { display: flex; flex-direction: column; height: 100%; background: #000; }
-        .player-video { width: 100%; aspect-ratio: 9/16; background: linear-gradient(160deg,#20242f,#0d0f14); position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; touch-action: none; }
-        .player-video video { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-        .watermark { position: absolute; color: rgba(255,255,255,0.25); font-size: 10px; font-weight: 600; transform: rotate(-18deg); pointer-events: none; text-shadow: 0 1px 3px rgba(0,0,0,0.6); letter-spacing: 0.5px; }
-        .wm1 { top: 18%; right: 10%; } .wm2 { top: 52%; left: 8%; } .wm3 { bottom: 14%; right: 22%; }
-        .secure-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); border: 1px solid rgba(232,169,59,0.3); border-radius: 100px; padding: 4px 10px; font-size: 9px; color: var(--gold); display: flex; align-items: center; gap: 4px; pointer-events: none; }
-        .play-btn-c { width: 52px; height: 52px; border-radius: 50%; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); border: 1.5px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; z-index: 5; cursor: pointer; }
-        .p-top-controls { position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; }
-        .p-back { width: 30px; height: 30px; border-radius: 50%; background: rgba(0,0,0,0.5); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
-        .player-progress-row { position: absolute; bottom: 10px; left: 14px; right: 14px; display: flex; align-items: center; gap: 8px; pointer-events: none; }
-        .player-progress-row .t { font-size: 9px; color: rgba(255,255,255,0.8); }
-        .pbar { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.2); position: relative; pointer-events: auto; }
-        .pbar .fill { position: absolute; right: 0; top: 0; bottom: 0; width: 38%; background: var(--gold); border-radius: 3px; }
-        .pbar .knob { position: absolute; right: 38%; top: 50%; transform: translate(50%,-50%); width: 10px; height: 10px; border-radius: 50%; background: var(--gold); pointer-events: auto; cursor: pointer; }
+        .player-video { width: 100%; aspect-ratio: 9/16; background: #000; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; touch-action: none; }
+        .player-video video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+        .v-gesture-layer { position: absolute; inset: 0; z-index: 4; display: flex; }
+        .v-gesture-zone { flex: 1; height: 100%; }
+        .v-center-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.7); width: 64px; height: 64px; border-radius: 50%; background: rgba(0,0,0,0.55); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: #fff; opacity: 0; pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease; z-index: 8; }
+        .v-center-icon.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+        .v-side-indicator { position: absolute; top: 50%; transform: translateY(-50%); width: 84px; padding: 12px 10px; border-radius: 14px; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; z-index: 7; }
+        .v-side-indicator.show { opacity: 1; }
+        .v-side-indicator.left { left: 20px; }
+        .v-side-indicator.right { right: 20px; }
+        .v-side-indicator .v-bar-track { width: 4px; height: 70px; border-radius: 4px; background: rgba(255,255,255,0.2); position: relative; overflow: hidden; }
+        .v-side-indicator .v-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 4px; transition: height 0.05s linear; }
+        .v-side-indicator .v-val { font-size: 10.5px; color: #fff; font-weight: 600; }
+        .v-seek-flash { position: absolute; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 16px; border-radius: 12px; background: rgba(0,0,0,0.55); backdrop-filter: blur(10px); color: #fff; font-size: 12px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; z-index: 7; }
+        .v-seek-flash.left { left: 24px; } .v-seek-flash.right { right: 24px; }
+        .v-seek-flash.show { opacity: 1; }
+        .watermark { position: absolute; color: rgba(255,255,255,0.22); font-size: 10px; font-weight: 600; transform: rotate(-18deg); pointer-events: none; text-shadow: 0 1px 3px rgba(0,0,0,0.6); letter-spacing: 0.5px; z-index: 3; }
+        .wm1 { top: 18%; right: 10%; } .wm2 { top: 52%; left: 8%; } .wm3 { bottom: 22%; right: 22%; }
+        .secure-badge { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); border: 1px solid rgba(232,169,59,0.3); border-radius: 100px; padding: 5px 11px; font-size: 9.5px; color: var(--gold); display: flex; align-items: center; gap: 5px; pointer-events: none; z-index: 6; font-weight: 600; }
+        .secure-badge svg { width: 11px; height: 11px; }
+        .v-top-bar { position: absolute; top: 0; left: 0; right: 0; padding: 12px 12px; display: flex; align-items: center; justify-content: space-between; z-index: 6; background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent); opacity: 1; transition: opacity 0.25s ease; }
+        .v-top-bar.hidden-ui { opacity: 0; pointer-events: none; }
+        .v-top-right { display: flex; gap: 6px; }
+        .v-icon-btn { width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.42); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; -webkit-tap-highlight-color: transparent; }
+        .v-icon-btn svg { width: 17px; height: 17px; }
+        .v-icon-btn.active { background: var(--gold); color: #1a1305; }
+        .v-center-controls { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); display: flex; align-items: center; gap: 30px; z-index: 6; opacity: 1; transition: opacity 0.25s ease; }
+        .v-center-controls.hidden-ui { opacity: 0; pointer-events: none; }
+        .v-play-btn { width: 58px; height: 58px; border-radius: 50%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); border: 1.5px solid rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; }
+        .v-play-btn svg { width: 26px; height: 26px; }
+        .v-step-btn { width: 42px; height: 42px; border-radius: 50%; background: rgba(0,0,0,0.32); display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; position: relative; }
+        .v-step-btn svg { width: 20px; height: 20px; }
+        .v-bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 22px 14px 12px; z-index: 6; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); opacity: 1; transition: opacity 0.25s ease; }
+        .v-bottom-bar.hidden-ui { opacity: 0; pointer-events: none; }
+        .v-progress-row { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+        .v-progress-row .t { font-size: 10.5px; color: rgba(255,255,255,0.9); font-variant-numeric: tabular-nums; min-width: 34px; text-align: center; }
+        .pbar { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.22); position: relative; cursor: pointer; }
+        .pbar .buffered { position: absolute; right: 0; top: 0; bottom: 0; background: rgba(255,255,255,0.28); border-radius: 3px; }
+        .pbar .fill { position: absolute; right: 0; top: 0; bottom: 0; width: 0%; background: var(--gold); border-radius: 3px; }
+        .pbar .knob { position: absolute; right: 0%; top: 50%; transform: translate(50%,-50%); width: 11px; height: 11px; border-radius: 50%; background: var(--gold); box-shadow: 0 1px 4px rgba(0,0,0,0.5); cursor: pointer; }
+        .v-bottom-actions { display: flex; align-items: center; justify-content: space-between; }
+        .v-chip-row { display: flex; gap: 6px; }
+        .v-chip { font-size: 10.5px; color: #fff; background: rgba(255,255,255,0.1); border: none; border-radius: 7px; padding: 5px 9px; cursor: pointer; font-family: 'Vazirmatn', sans-serif; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .v-chip svg { width: 12px; height: 12px; }
+        .v-chip.active-chip { background: var(--gold); color: #1a1305; }
+        .v-lock-overlay { position: absolute; inset: 0; z-index: 9; display: none; align-items: flex-end; padding: 20px; }
+        .v-lock-overlay.show { display: flex; }
         .player-info { padding: 14px 16px; background: var(--bg-surface); flex: 1; overflow-y: auto; }
-        .player-info h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-        .meta-tag { font-size: 10px; color: var(--text-sub); background: var(--bg-hover); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 100px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
-        .resume-note { display: flex; align-items: center; gap: 8px; background: rgba(232,169,59,0.08); border: 1px solid rgba(232,169,59,0.2); padding: 8px 12px; border-radius: 10px; font-size: 11px; color: var(--gold); margin-bottom: 12px; }
-        .warn-note { display: flex; align-items: flex-start; gap: 8px; background: rgba(232,93,93,0.06); border: 1px solid rgba(232,93,93,0.15); padding: 8px 12px; border-radius: 10px; font-size: 10px; color: #f0a0a0; line-height: 1.6; }
-        /* AUDIO */
-        .audio-player-mezzo { display: flex; flex-direction: column; height: 100%; background: linear-gradient(160deg, #1a1a2e, #16213e); padding: 20px 18px; }
-        .audio-player-mezzo .artwork { width: 100%; aspect-ratio: 1/1; border-radius: 18px; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; font-size: 50px; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-        .audio-player-mezzo .track-info { text-align: center; margin-bottom: 12px; }
-        .audio-player-mezzo .track-info h3 { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
-        .audio-player-mezzo .track-info p { font-size: 12px; color: var(--text-sub); }
-        .audio-player-mezzo .progress-section { margin-bottom: 16px; }
-        .audio-player-mezzo .progress-section .time-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub); }
-        .audio-player-mezzo .controls-row { display: flex; justify-content: center; align-items: center; gap: 20px; }
-        .audio-player-mezzo .controls-row .icon-btn { font-size: 24px; color: #fff; background: rgba(255,255,255,0.06); border-radius: 50%; padding: 8px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .audio-player-mezzo .controls-row .icon-btn.play-main { font-size: 28px; background: var(--gold); color: #1a1305; }
-        .audio-player-mezzo .eq-bar { display: flex; justify-content: center; gap: 4px; height: 36px; margin: 12px 0; }
-        .audio-player-mezzo .eq-bar .bar { width: 5px; background: var(--gold); border-radius: 3px; animation: none; }
-        @keyframes eqPulse { 0% { height: 20%; } 100% { height: 100%; } }
-        /* PDF */
-        .pdf-shell { display: flex; flex-direction: column; height: 100%; background: var(--bg-app); }
-        .pdf-page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; overflow: auto; }
-        .pdf-page canvas { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-        .pdf-bottombar { display: flex; justify-content: space-between; align-items: center; padding: 10px 18px; background: var(--bg-surface); border-top: 1px solid var(--border-color); flex-shrink: 0; }
-        .pdf-page-ind { font-size: 11px; color: var(--text-sub); }
-        /* IMAGE */
-        .image-viewer { display: flex; flex-direction: column; height: 100%; background: #000; }
-        .image-viewer .image-container { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; touch-action: none; }
-        .image-viewer .image-container img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.1s ease; }
-        .image-viewer .image-toolbar { display: flex; justify-content: center; gap: 14px; padding: 10px; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); flex-shrink: 0; }
-        .image-viewer .image-toolbar .icon-btn { color: #fff; font-size: 20px; padding: 5px 10px; border-radius: 8px; background: rgba(255,255,255,0.08); cursor: pointer; }
+        .player-info h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+        .meta-tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .meta-tag { font-size: 10px; color: var(--text-sub); background: var(--bg-hover); border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 100px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-weight: 500; }
+        .meta-tag svg { width: 12px; height: 12px; }
+        .resume-note { display: flex; align-items: center; gap: 8px; background: rgba(232,169,59,0.08); border: 1px solid rgba(232,169,59,0.2); padding: 9px 12px; border-radius: 10px; font-size: 11px; color: var(--gold); margin-bottom: 10px; }
+        .resume-note svg { width: 14px; height: 14px; flex-shrink: 0; }
+        .warn-note { display: flex; align-items: flex-start; gap: 8px; background: rgba(232,93,93,0.06); border: 1px solid rgba(232,93,93,0.15); padding: 9px 12px; border-radius: 10px; font-size: 10.5px; color: #f0a0a0; line-height: 1.7; }
+        .warn-note svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+
+        /* ================================================================
+           AUDIO PLAYER — "Mezzo" inspired: elegant, artwork-forward
+           ================================================================ */
+        .audio-player-mezzo { display: flex; flex-direction: column; height: 100%; background: radial-gradient(120% 90% at 50% -10%, #23264a 0%, #14152b 46%, #0b0c1b 100%); padding: 18px 20px; overflow-y: auto; }
+        .audio-player-mezzo .mezzo-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .audio-player-mezzo .mezzo-topbar .mz-label { font-size: 10.5px; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; }
+        .audio-player-mezzo .artwork-wrap { position: relative; width: 100%; aspect-ratio: 1/1; margin-bottom: 22px; }
+        .audio-player-mezzo .artwork { width: 100%; height: 100%; border-radius: 20px; background: linear-gradient(145deg, #2a2d55, #1a1b33); display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 50px -12px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.05) inset; position: relative; overflow: hidden; }
+        .audio-player-mezzo .artwork svg { width: 30%; height: 30%; color: rgba(255,255,255,0.18); }
+        .audio-player-mezzo .artwork.spinning { animation: mzRotate 18s linear infinite; }
+        .audio-player-mezzo .artwork.spinning.paused { animation-play-state: paused; }
+        @keyframes mzRotate { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+        .audio-player-mezzo .track-info { text-align: center; margin-bottom: 18px; }
+        .audio-player-mezzo .track-info h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .audio-player-mezzo .track-info p { font-size: 12px; color: rgba(255,255,255,0.5); }
+        .audio-player-mezzo .progress-section { margin-bottom: 20px; }
+        .audio-player-mezzo .progress-section .pbar { height: 4px; background: rgba(255,255,255,0.14); }
+        .audio-player-mezzo .progress-section .fill { background: var(--gold); }
+        .audio-player-mezzo .progress-section .knob { width: 12px; height: 12px; background: var(--gold); box-shadow: 0 0 0 4px rgba(232,169,59,0.18); }
+        .audio-player-mezzo .progress-section .time-row { display: flex; justify-content: space-between; font-size: 10.5px; color: rgba(255,255,255,0.45); margin-top: 6px; font-variant-numeric: tabular-nums; }
+        .audio-player-mezzo .controls-row { display: flex; justify-content: center; align-items: center; gap: 22px; margin-bottom: 18px; }
+        .audio-player-mezzo .icon-btn { background: none; border: none; cursor: pointer; -webkit-tap-highlight-color: transparent; color: rgba(255,255,255,0.65); display: flex; align-items: center; justify-content: center; padding: 8px; border-radius: 50%; }
+        .audio-player-mezzo .icon-btn svg { width: 21px; height: 21px; }
+        .audio-player-mezzo .icon-btn.mz-active { color: var(--gold); }
+        .audio-player-mezzo .icon-btn.play-main { width: 58px; height: 58px; background: var(--gold); color: #1a1305; box-shadow: 0 8px 22px -6px rgba(232,169,59,0.55); }
+        .audio-player-mezzo .icon-btn.play-main svg { width: 26px; height: 26px; }
+        .audio-player-mezzo .icon-btn.skip svg { width: 24px; height: 24px; }
+        .audio-player-mezzo .mz-secondary-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .audio-player-mezzo .mz-sec-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600; padding: 7px 13px; border-radius: 9px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: 'Vazirmatn', sans-serif; }
+        .audio-player-mezzo .mz-sec-btn svg { width: 14px; height: 14px; }
+        .audio-player-mezzo .mz-sec-btn.mz-active { background: rgba(232,169,59,0.15); border-color: rgba(232,169,59,0.35); color: var(--gold); }
+        .audio-player-mezzo .mz-volume-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding: 0 4px; }
+        .audio-player-mezzo .mz-volume-row svg { width: 16px; height: 16px; color: rgba(255,255,255,0.45); flex-shrink: 0; }
+        .audio-player-mezzo .mz-volume-track { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.14); position: relative; cursor: pointer; }
+        .audio-player-mezzo .mz-volume-fill { position: absolute; right: 0; top: 0; bottom: 0; border-radius: 3px; background: rgba(255,255,255,0.55); width: 100%; }
+        .audio-player-mezzo .mz-volume-track .knob { width: 10px; height: 10px; background: #fff; }
+        .audio-player-mezzo .eq-bar { display: flex; justify-content: center; align-items: flex-end; gap: 4px; height: 34px; margin-bottom: 16px; opacity: 0.85; }
+        .audio-player-mezzo .eq-bar .bar { width: 4px; height: 22%; background: linear-gradient(to top, var(--gold), #f5cf85); border-radius: 3px; animation: none; }
+        @keyframes eqPulse { 0% { height: 18%; } 100% { height: 100%; } }
+        .audio-player-mezzo .mz-close { position: absolute; top: 14px; left: 16px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; }
+        .audio-player-mezzo .mz-close svg { width: 15px; height: 15px; }
+
+        /* ================================================================
+           PDF VIEWER — Acrobat Reader inspired: toolbar, thumbnails, zoom
+           ================================================================ */
+        .pdf-shell { display: flex; flex-direction: column; height: 100%; background: #2b2f38; }
+        [data-theme="light"] .pdf-shell { background: #E9EBEF; }
+        .pdf-topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); flex-shrink: 0; gap: 8px; }
+        .pdf-topbar-title { font-size: 12px; font-weight: 700; flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pdf-topbar-actions { display: flex; gap: 4px; }
+        .pdf-page-wrap { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 14px 10px; overflow: auto; position: relative; -webkit-overflow-scrolling: touch; }
+        .pdf-canvas-holder { position: relative; margin: 0 auto; touch-action: pan-x pan-y; }
+        .pdf-page-wrap canvas { display: block; border-radius: 3px; box-shadow: 0 6px 24px rgba(0,0,0,0.35); background: #fff; }
+        .pdf-text-layer { position: absolute; inset: 0; overflow: hidden; opacity: 0.2; line-height: 1; }
+        .pdf-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; color: rgba(255,255,255,0.5); font-size: 11px; }
+        .pdf-loading svg { width: 26px; height: 26px; animation: pdfSpin 1s linear infinite; }
+        @keyframes pdfSpin { to { transform: rotate(360deg); } }
+        .pwm { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%) rotate(0deg); color: rgba(0,0,0,0.14); font-size: 10px; font-weight: 700; pointer-events: none; letter-spacing: 0.5px; z-index: 2; }
+        .pdf-bottombar { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; background: var(--bg-surface); border-top: 1px solid var(--border-color); flex-shrink: 0; gap: 10px; }
+        .pdf-page-ind { font-size: 11px; color: var(--text-sub); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .pdf-zoom-controls { display: flex; align-items: center; gap: 2px; background: var(--bg-hover); border-radius: 9px; padding: 2px; }
+        .pdf-zoom-val { font-size: 10.5px; color: var(--text-sub); min-width: 40px; text-align: center; font-variant-numeric: tabular-nums; }
+        .pdf-nav-btns { display: flex; gap: 6px; }
+        .pdf-thumbs-strip { display: flex; gap: 8px; padding: 8px 10px; overflow-x: auto; background: var(--bg-surface); border-top: 1px solid var(--border-color); flex-shrink: 0; scrollbar-width: none; }
+        .pdf-thumbs-strip::-webkit-scrollbar { display: none; }
+        .pdf-thumb-item { flex-shrink: 0; width: 40px; height: 54px; border-radius: 4px; background: var(--bg-hover); border: 1.5px solid transparent; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text-sub); cursor: pointer; overflow: hidden; }
+        .pdf-thumb-item.active-thumb { border-color: var(--gold); color: var(--gold); font-weight: 700; }
+        .pdf-search-bar { display: none; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); }
+        .pdf-search-bar.show { display: flex; }
+        .pdf-search-bar input { flex: 1; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 9px; padding: 7px 12px; font-size: 12px; color: var(--text-main); outline: none; font-family: 'Vazirmatn', sans-serif; }
+        .pdf-search-bar .pdf-search-count { font-size: 10.5px; color: var(--text-sub); white-space: nowrap; }
+
+        /* ================================================================
+           IMAGE VIEWER — desktop photo-editor inspired: checkerboard, tools
+           ================================================================ */
+        .image-viewer { display: flex; flex-direction: column; height: 100%; background: #1c1c1c; }
+        .image-viewer .iv-topbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(0,0,0,0.55); backdrop-filter: blur(10px); position: relative; z-index: 3; flex-shrink: 0; }
+        .image-viewer .iv-topbar .iv-title { font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
+        .image-viewer .image-container { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; touch-action: none; background-image: linear-gradient(45deg, #262626 25%, transparent 25%), linear-gradient(-45deg, #262626 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #262626 75%), linear-gradient(-45deg, transparent 75%, #262626 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; background-color: #1c1c1c; }
+        .image-viewer .image-container img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.06s ease-out; will-change: transform; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .image-viewer .iv-zoom-badge { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); color: #fff; font-size: 10.5px; font-weight: 700; padding: 5px 10px; border-radius: 100px; z-index: 3; font-variant-numeric: tabular-nums; }
+        .image-viewer .image-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); flex-shrink: 0; }
+        .image-viewer .image-toolbar .iv-group { display: flex; gap: 4px; align-items: center; }
+        .image-viewer .image-toolbar .icon-btn { color: #fff; padding: 8px; border-radius: 9px; background: rgba(255,255,255,0.07); cursor: pointer; display: flex; align-items: center; justify-content: center; border: none; -webkit-tap-highlight-color: transparent; }
+        .image-viewer .image-toolbar .icon-btn svg { width: 17px; height: 17px; }
+        .image-viewer .image-toolbar .icon-btn:active { background: rgba(255,255,255,0.16); }
         /* IMPORT */
         .import-wrap { padding: 16px 18px; }
         .import-hero { text-align: center; padding: 20px 10px 16px; }
@@ -242,7 +348,7 @@
         theme: 'dark', filter: 'all', library: [], phone: '', license: null,
         pendingItem: null, currentMediaElement: null, currentFileType: 'video',
         pdfDoc: null, pdfPageNum: 1, selectedPlanDays: 90, selectedPlanAmount: '۱٬۲۹۰٬۰۰۰',
-        encryptionKey: null, imageZoom: 1, imageRotation: 0, imagePanX: 0, imagePanY: 0,
+        encryptionKeyCache: {}, imageZoom: 1, imageRotation: 0, imagePanX: 0, imagePanY: 0,
         audioPlaylist: [], audioCurrentIndex: 0, isPlaying: false, pdfBookmarks: [],
         audioElement: null, isAudioPlaying: false, audioShuffleMode: false,
         audioRepeatMode: false, audioEqActive: false, eqInterval: null,
@@ -254,9 +360,9 @@
     // ================================================================
     const SAMPLE_IDS = ['sample_video','sample_audio','sample_pdf','sample_image'];
     const SAMPLE_FILES = [
-        { id: 'sample_video', name: 'ویدیو نمونه ۱ دقیقه‌ای', type: 'video', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400' },
-        { id: 'sample_audio', name: 'فایل صوتی نمونه', type: 'audio', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400' },
-        { id: 'sample_pdf', name: 'راهنمای نرم‌افزار (PDF)', type: 'pdf', url: 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400' },
+        { id: 'sample_video', name: 'ویدیو نمونه', type: 'video', url: 'https://raw.githubusercontent.com/mediaelement/mediaelement-files/master/big_buck_bunny.mp4', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400' },
+        { id: 'sample_audio', name: 'فایل صوتی نمونه', type: 'audio', url: 'https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400' },
+        { id: 'sample_pdf', name: 'راهنمای نرم‌افزار (PDF)', type: 'pdf', url: 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/test/pdfs/basicapi.pdf', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400' },
         { id: 'sample_image', name: 'تصویر نمونه', type: 'image', url: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400&q=60', progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400' }
     ];
     const STORAGE_KEY = 'faradanesh_data';
@@ -270,7 +376,15 @@
     // ================================================================
     // HW FINGERPRINT
     // ================================================================
+    // شناسه‌ی سخت‌افزار باید کاملاً پایدار باشد. محاسبه‌ی زنده‌ی canvas/WebGL fingerprint در برخی
+    // مرورگرها (Safari با Privacy Protection، Chrome با Enhanced Fingerprinting Protection و غیره)
+    // در هر اجرا مقداری متفاوت برمی‌گرداند و باعث خطای «سازگار نیست با دستگاه» می‌شود، حتی روی
+    // همان دستگاه و همان مرورگر. راه‌حل: مقدار را فقط یک‌بار محاسبه و در localStorage ذخیره می‌کنیم؛
+    // اجراهای بعدی همیشه همان مقدار ذخیره‌شده را برمی‌گردانند.
+    const HW_HASH_STORAGE_KEY = 'faradanesh_hw_hash_v1';
     function getHardwareFingerprint() {
+        const cached = localStorage.getItem(HW_HASH_STORAGE_KEY);
+        if (cached) return Promise.resolve(cached);
         return new Promise((resolve) => {
             const canvas = document.createElement('canvas');
             canvas.width = 200; canvas.height = 50;
@@ -292,7 +406,11 @@
             ];
             const raw = components.join('|||');
             crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw))
-                .then(hash => { const hex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join(''); resolve(hex); })
+                .then(hash => {
+                    const hex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+                    try { localStorage.setItem(HW_HASH_STORAGE_KEY, hex); } catch(e) {}
+                    resolve(hex);
+                })
                 .catch(() => resolve('fallback_' + Date.now()));
         });
     }
@@ -300,12 +418,36 @@
     // ================================================================
     // ENCRYPTION
     // ================================================================
+    const ENC_FILE_MAGIC = 'FDEN';
+    const ENC_TYPE_CODES = ['video', 'audio', 'image', 'pdf']; // باید دقیقاً با ابزار پایتون هماهنگ باشد
+
+    // جدا کردن هدر نوع‌فایل (FDEN) از ابتدای بافر .enc در صورت وجود.
+    // اگر فایل هدر قدیمی نداشت (نسخه‌های قبلی ابزار)، null برمی‌گرداند و باید با حدسِ magic-bytes ادامه داد.
+    function parseEncHeader(buffer) {
+        const data = new Uint8Array(buffer);
+        if (data.length < 7) return null;
+        const magic = new TextDecoder().decode(data.slice(0, 4));
+        if (magic !== ENC_FILE_MAGIC) return null;
+        const typeCode = data[4];
+        const extLen = data[5] | (data[6] << 8); // little-endian uint16
+        const headerLen = 7 + extLen;
+        if (data.length < headerLen + 12) return null; // حداقل باید IV هم موجود باشد
+        const ext = new TextDecoder().decode(data.slice(7, 7 + extLen));
+        const type = ENC_TYPE_CODES[typeCode] || 'video';
+        return { type, ext, payloadOffset: headerLen };
+    }
+
     async function getEncryptionKey(hwHash) {
-        if (STATE.encryptionKey) return STATE.encryptionKey;
+        // کلید باید بر اساس hwHash کش شود، نه به‌صورت یک‌بارِ سراسری —
+        // وگرنه اگر این تابع یک‌بار با hwHash نادرست/متفاوت صدا زده شود (مثلاً پیش از آماده شدن
+        // لایسنس)، همان کلید غلط برای همیشه کش می‌ماند و همه‌ی رمزگشایی‌های بعدی — حتی با
+        // hwHash درست — با کلید اشتباه انجام می‌شوند و «رمزگشایی ناموفق / سازگار نیست» می‌دهند.
+        if (!STATE.encryptionKeyCache) STATE.encryptionKeyCache = {};
+        if (STATE.encryptionKeyCache[hwHash]) return STATE.encryptionKeyCache[hwHash];
         const encoder = new TextEncoder();
         const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(hwHash + 'FaradaneshSalt2024'), 'PBKDF2', false, ['deriveKey']);
         const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: encoder.encode('FaradaneshSalt'), iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-        STATE.encryptionKey = key; return key;
+        STATE.encryptionKeyCache[hwHash] = key; return key;
     }
     async function encryptBlob(blob, hwHash) {
         const key = await getEncryptionKey(hwHash);
@@ -316,16 +458,28 @@
         result.set(iv); result.set(new Uint8Array(encrypted), iv.length);
         return new Blob([result], { type: blob.type });
     }
-    async function decryptBlob(encryptedBlob, hwHash) {
+    // decryptBlob اکنون هدر اختیاری FDEN را نادیده می‌گیرد (payloadOffset را از بیرون دریافت می‌کند)
+    // تا فایل‌های رمزشده‌ی قدیمی (بدون هدر) هم همچنان کار کنند.
+    async function decryptBlob(encryptedBlob, hwHash, payloadOffset) {
         const key = await getEncryptionKey(hwHash);
         const buffer = await encryptedBlob.arrayBuffer();
         const data = new Uint8Array(buffer);
-        const iv = data.slice(0, 12);
-        const encrypted = data.slice(12);
+        const start = payloadOffset || 0;
+        const iv = data.slice(start, start + 12);
+        const encrypted = data.slice(start + 12);
         try {
             const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encrypted);
             return new Blob([decrypted], { type: encryptedBlob.type });
         } catch(e) { throw new Error('رمزگشایی ناموفق'); }
+    }
+
+    // تابع یکپارچه برای رمزگشایی بلاب ذخیره‌شده: هدر FDEN را (در صورت وجود) تشخیص می‌دهد
+    // و آفست صحیح را به decryptBlob می‌دهد. برای فایل‌های قدیمی بدون هدر هم کار می‌کند.
+    async function decryptStoredBlob(blob, hwHash) {
+        const buffer = await blob.arrayBuffer();
+        const headerInfo = parseEncHeader(buffer);
+        const offset = headerInfo ? headerInfo.payloadOffset : 0;
+        return decryptBlob(new Blob([buffer]), hwHash, offset);
     }
 
     // ================================================================
@@ -526,30 +680,57 @@
             const buffer = await file.arrayBuffer();
             const blob = new Blob([buffer]);
             const hwHash = STATE.license.hwHash || await getHardwareFingerprint();
+
+            // ابتدا هدر FDEN را می‌خوانیم — اگر موجود بود، نوع فایل قطعی است (نه حدسی)
+            const headerInfo = parseEncHeader(buffer);
+            let type = 'video';
             let decrypted;
             try {
-                decrypted = await decryptBlob(blob, hwHash);
+                if (headerInfo) {
+                    decrypted = await decryptBlob(blob, hwHash, headerInfo.payloadOffset);
+                    type = headerInfo.type;
+                } else {
+                    // فایل .enc قدیمی بدون هدر — رمزگشایی از آفست صفر و تشخیص نوع با magic-bytes
+                    decrypted = await decryptBlob(blob, hwHash, 0);
+                    type = await detectTypeFromDecryptedContent(decrypted);
+                }
             } catch(e) {
                 showToast('فایل .enc معتبر نیست یا با این دستگاه سازگار نیست.');
                 return;
             }
-            let type = 'video';
-            const header = new Uint8Array(await decrypted.slice(0, 100).arrayBuffer());
-            const text = new TextDecoder().decode(header);
-            if (text.includes('%PDF')) type = 'pdf';
-            else if (header[0] === 0xFF && header[1] === 0xD8) type = 'image';
-            else if (header[0] === 0x49 && header[1] === 0x44 && header[2] === 0x33) type = 'audio';
-            else if (header[0] === 0x1A && header[1] === 0x45 && header[2] === 0xDF && header[3] === 0xA3) type = 'video';
-            const name = file.name.replace('.enc', '') || 'فایل وارد شده';
+
+            let name = file.name.replace(/\.enc$/i, '');
+            if (headerInfo && headerInfo.ext && !name.toLowerCase().endsWith('.' + headerInfo.ext.toLowerCase())) {
+                name = name + '.' + headerInfo.ext;
+            }
             const id = 'file_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
             await storeFile(id, blob, { name, type, progress: 0, watched: false, watermark: STATE.phone });
             STATE.library.push({ id, name, type, progress: 0, watched: false, thumb: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400' });
             saveData();
             renderLibrary();
             updateImportList();
-            showToast('فایل .enc با موفقیت وارد شد');
+            const typeFa = { video: 'ویدیو', audio: 'صوت', image: 'تصویر', pdf: 'PDF' }[type] || 'فایل';
+            showToast(`فایل .enc با موفقیت وارد شد و در بخش «${typeFa}» قرار گرفت`);
             input.value = '';
         } catch(e) { showToast('خطا در وارد کردن فایل: ' + e.message); }
+    }
+
+    // fallback فقط برای فایل‌های .enc قدیمی که هدر FDEN ندارند
+    async function detectTypeFromDecryptedContent(decrypted) {
+        let type = 'video';
+        const header = new Uint8Array(await decrypted.slice(0, 16).arrayBuffer());
+        const text = new TextDecoder().decode(header);
+        if (text.includes('%PDF')) type = 'pdf';
+        else if (header[0] === 0xFF && header[1] === 0xD8) type = 'image'; // JPEG
+        else if (header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4E && header[3] === 0x47) type = 'image'; // PNG
+        else if (header[0] === 0x47 && header[1] === 0x49 && header[2] === 0x46) type = 'image'; // GIF
+        else if (header[8] === 0x57 && header[9] === 0x45 && header[10] === 0x42 && header[11] === 0x50) type = 'image'; // WEBP (RIFF....WEBP)
+        else if (header[0] === 0x49 && header[1] === 0x44 && header[2] === 0x33) type = 'audio'; // MP3 (ID3)
+        else if (header[0] === 0xFF && (header[1] & 0xE0) === 0xE0) type = 'audio'; // MP3 بدون ID3
+        else if (header[0] === 0x52 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x46) type = 'audio'; // WAV (RIFF....WAVE)
+        else if (header[0] === 0x1A && header[1] === 0x45 && header[2] === 0xDF && header[3] === 0xA3) type = 'video'; // WebM/MKV
+        else if (header[4] === 0x66 && header[5] === 0x74 && header[6] === 0x79 && header[7] === 0x70) type = 'video'; // MP4/MOV (ftyp)
+        return type;
     }
 
     function parseGoogleDriveLink(link) {
@@ -659,12 +840,12 @@
                 </div>
                 <div class="post-actions">
                     <div class="action-group">
-                        <i data-lucide="bookmark" onclick="toggleSave('${item.id}')" style="color:${isSaved ? 'var(--gold)' : 'var(--text-sub)'};"></i>
+                        <i data-lucide="bookmark" onclick="toggleSave('${item.id}')" style="color:${isSaved ? 'var(--gold)' : 'var(--text-sub)'};${isSaved ? 'fill:var(--gold);' : ''}"></i>
                     </div>
-                </div>
-                <div class="post-meta-text">
-                    <span>پیشرفت: <b>${Math.round(progress)}%</b></span>
-                    ${progress > 0 ? `<span style="color:var(--green);display:flex;align-items:center;gap:3px;"><i data-lucide="eye" style="width:12px;"></i> ${progress >= 100 ? 'کامل' : Math.round(progress)+'%'}</span>` : ''}
+                    <div class="post-progress-inline ${progress >= 100 ? 'complete' : ''}">
+                        <i data-lucide="${progress >= 100 ? 'check-circle-2' : 'circle-play'}"></i>
+                        <span>${progress >= 100 ? 'مشاهده کامل' : `پیشرفت: <b>${Math.round(progress)}%</b>`}</span>
+                    </div>
                 </div>
             </div>
         `;
@@ -743,7 +924,7 @@
                 if (stored) {
                     const hwHash = STATE.license?.hwHash || await getHardwareFingerprint();
                     try {
-                        const decrypted = await decryptBlob(stored.blob, hwHash);
+                        const decrypted = await decryptStoredBlob(stored.blob, hwHash);
                         src = URL.createObjectURL(decrypted);
                     } catch(e) {
                         showToast('خطا در رمزگشایی فایل: ' + e.message);
@@ -755,47 +936,80 @@
             mainArea.innerHTML = `
                 <div class="player-shell">
                     <div class="player-video" id="videoViewport">
-                        <video id="playerVideo" src="${src}" style="width:100%;height:100%;object-fit:contain;display:block;"></video>
-                        <div class="secure-badge">🔒 پخش امن</div>
+                        <video id="playerVideo" src="${src}" playsinline></video>
+
+                        <div class="secure-badge"><i data-lucide="shield-check"></i><span>پخش امن</span></div>
                         <div class="watermark wm1" id="wm1">${phone}</div>
                         <div class="watermark wm2" id="wm2">کد اکانت: FP-${phone.slice(-4)}</div>
                         <div class="watermark wm3" id="wm3">${phone}</div>
-                        <div class="play-btn-c" id="playBtn" onclick="togglePlay()">▶</div>
-                        <div class="player-progress-row">
-                            <span class="t" id="vCurrent">۰۰:۰۰</span>
-                            <div class="pbar" id="progressBar">
-                                <div class="fill" id="vSeekFill" style="width:0%;"></div>
-                                <div class="knob" id="vSeekKnob" style="right:0%;"></div>
+
+                        <!-- لایه ژست‌ها: راست=جلو، وسط=پخش/توقف، چپ=عقب. لمس عمودی راست=صدا، چپ=روشنایی -->
+                        <div class="v-gesture-layer" id="vGestureLayer">
+                            <div class="v-gesture-zone" data-zone="left"></div>
+                            <div class="v-gesture-zone" data-zone="center"></div>
+                            <div class="v-gesture-zone" data-zone="right"></div>
+                        </div>
+
+                        <div class="v-center-icon" id="vCenterIcon"><i data-lucide="play"></i></div>
+                        <div class="v-side-indicator left" id="vBrightIndicator">
+                            <i data-lucide="sun" style="width:15px;height:15px;color:#fff;"></i>
+                            <div class="v-bar-track"><div class="v-bar-fill" id="vBrightFill" style="height:70%;"></div></div>
+                            <span class="v-val" id="vBrightVal">70%</span>
+                        </div>
+                        <div class="v-side-indicator right" id="vVolIndicator">
+                            <i data-lucide="volume-2" style="width:15px;height:15px;color:#fff;" id="vVolIcon"></i>
+                            <div class="v-bar-track"><div class="v-bar-fill" id="vVolFill" style="height:100%;"></div></div>
+                            <span class="v-val" id="vVolVal">100%</span>
+                        </div>
+                        <div class="v-seek-flash left" id="vSeekFlashL"><i data-lucide="rewind" style="width:16px;height:16px;"></i><span id="vSeekFlashLTxt">۱۰ ثانیه</span></div>
+                        <div class="v-seek-flash right" id="vSeekFlashR"><i data-lucide="fast-forward" style="width:16px;height:16px;"></i><span id="vSeekFlashRTxt">۱۰ ثانیه</span></div>
+
+                        <div class="v-top-bar" id="vTopBar">
+                            <div class="v-icon-btn" onclick="switchTab('home')"><i data-lucide="chevron-right"></i></div>
+                            <div class="v-top-right">
+                                <button class="v-icon-btn" id="vLockToggle" onclick="toggleVideoLock()"><i data-lucide="lock-open"></i></button>
+                                <button class="v-icon-btn" onclick="togglePipMode()"><i data-lucide="picture-in-picture-2"></i></button>
+                                <button class="v-icon-btn" onclick="toggleFullscreen()"><i data-lucide="maximize"></i></button>
                             </div>
-                            <span class="t" id="vDuration">۰۰:۰۰</span>
                         </div>
-                        <div class="p-top-controls">
-                            <div class="p-back" onclick="switchTab('home')">→</div>
-                            <div class="p-back" onclick="togglePipMode()" style="font-size:12px;">📺</div>
-                            <div class="p-back" onclick="toggleFullscreen()" style="font-size:12px;">⛶</div>
+
+                        <div class="v-center-controls" id="vCenterControls">
+                            <button class="v-step-btn" onclick="stepVideo(-10)"><i data-lucide="rotate-ccw"></i></button>
+                            <button class="v-play-btn" id="playBtn" onclick="togglePlay()"><i data-lucide="play"></i></button>
+                            <button class="v-step-btn" onclick="stepVideo(10)"><i data-lucide="rotate-cw"></i></button>
                         </div>
-                        <div style="position:absolute;bottom:50px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;">
-                            <button onclick="stepVideo(-5)" class="play-btn-c" style="width:32px;height:32px;font-size:12px;">-5</button>
-                            <span style="color:#fff;font-size:12px;display:flex;gap:10px;">
-                                <select id="vSpeedSelect" onchange="setVideoSpeed(this.value)" style="background:rgba(0,0,0,0.6);color:#fff;border:1px solid #555;border-radius:4px;">
-                                    <option value="0.5">0.5x</option>
-                                    <option value="1.0" selected>1.0x</option>
-                                    <option value="1.5">1.5x</option>
-                                    <option value="2.0">2.0x</option>
-                                </select>
-                            </span>
-                            <button onclick="stepVideo(5)" class="play-btn-c" style="width:32px;height:32px;font-size:12px;">+5</button>
+
+                        <div class="v-bottom-bar" id="vBottomBar">
+                            <div class="v-progress-row">
+                                <span class="t" id="vCurrent">۰۰:۰۰</span>
+                                <div class="pbar" id="progressBar">
+                                    <div class="buffered" id="vBufferedFill" style="width:0%;"></div>
+                                    <div class="fill" id="vSeekFill" style="width:0%;"></div>
+                                    <div class="knob" id="vSeekKnob" style="right:0%;"></div>
+                                </div>
+                                <span class="t" id="vDuration">۰۰:۰۰</span>
+                            </div>
+                            <div class="v-bottom-actions">
+                                <div class="v-chip-row">
+                                    <button class="v-chip" id="vSpeedChip" onclick="cycleVideoSpeed()"><i data-lucide="gauge"></i><span id="vSpeedLabel">۱x</span></button>
+                                    <button class="v-chip" onclick="cycleVideoAspect()"><i data-lucide="rectangle-horizontal"></i><span id="vAspectLabel">تناسب</span></button>
+                                </div>
+                                <button class="v-icon-btn" onclick="toggleVideoMute()"><i data-lucide="volume-2" id="vMuteIcon"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="v-lock-overlay" id="vLockOverlay">
+                            <button class="v-icon-btn" style="width:40px;height:40px;background:rgba(0,0,0,0.55);" onclick="toggleVideoLock()"><i data-lucide="lock"></i></button>
                         </div>
                     </div>
                     <div class="player-info">
                         <h3 id="playerTitle">${item.name}</h3>
-                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-                            <span class="meta-tag" id="playerDuration">ویدیو</span>
-                            <span class="meta-tag" onclick="cycleVideoAspect()" style="cursor:pointer;">نسبت</span>
-                            <span class="meta-tag" onclick="toggleVideoLock()" style="cursor:pointer;" id="vLockBtn">🔓</span>
+                        <div class="meta-tag-row">
+                            <span class="meta-tag"><i data-lucide="film"></i>ویدیو</span>
+                            <span class="meta-tag" id="playerDuration"><i data-lucide="clock"></i>--:--</span>
                         </div>
-                        <div class="resume-note" id="resumeNote">↻ ${startNotice}</div>
-                        <div class="warn-note">⚠ ضبط صفحه، اسکرین‌شات و خروج از صفحه ممنوع.</div>
+                        <div class="resume-note" id="resumeNote"><i data-lucide="history"></i>${startNotice}</div>
+                        <div class="warn-note"><i data-lucide="shield-alert"></i><span>ضبط صفحه، اسکرین‌شات و خروج از صفحه ممنوع است.</span></div>
                     </div>
                 </div>
             `;
@@ -812,7 +1026,7 @@
                 if (stored) {
                     const hwHash = STATE.license?.hwHash || await getHardwareFingerprint();
                     try {
-                        const decrypted = await decryptBlob(stored.blob, hwHash);
+                        const decrypted = await decryptStoredBlob(stored.blob, hwHash);
                         src = URL.createObjectURL(decrypted);
                     } catch(e) {
                         showToast('خطا در رمزگشایی فایل: ' + e.message);
@@ -823,36 +1037,51 @@
             if (!src) { showToast('فایل یافت نشد'); return; }
             mainArea.innerHTML = `
                 <div class="audio-player-mezzo" id="audioPlayerMezzo">
-                    <div class="artwork">🎵</div>
+                    <button class="mz-close" onclick="switchTab('home')"><i data-lucide="chevron-down"></i></button>
+                    <div class="mezzo-topbar">
+                        <span class="mz-label">در حال پخش</span>
+                        <span class="mz-label" id="audioTrackPos">Mezzo</span>
+                    </div>
+                    <div class="artwork-wrap">
+                        <div class="artwork" id="audioArtwork"><i data-lucide="music-2"></i></div>
+                    </div>
                     <div class="track-info">
                         <h3 id="audioTitle">${item.name}</h3>
                         <p id="audioArtist">فرادانش</p>
                     </div>
                     <div class="progress-section">
+                        <div class="pbar" id="audioProgressBar">
+                            <div class="fill" id="aSeekFill" style="width:0%;"></div>
+                            <div class="knob" id="aSeekKnob" style="right:0%;"></div>
+                        </div>
                         <div class="time-row">
                             <span id="aCurrent">۰۰:۰۰</span>
                             <span id="aDuration">۰۰:۰۰</span>
                         </div>
-                        <div class="pbar" id="audioProgressBar" style="margin-top:6px;height:4px;">
-                            <div class="fill" id="aSeekFill" style="width:0%;"></div>
-                            <div class="knob" id="aSeekKnob" style="right:0%;"></div>
-                        </div>
                     </div>
                     <div class="eq-bar" id="eqBar">
-                        ${Array(12).fill('<div class="bar"></div>').join('')}
+                        ${Array(16).fill('<div class="bar"></div>').join('')}
                     </div>
                     <div class="controls-row">
-                        <button class="icon-btn" onclick="stepAudio(-5)">⏪</button>
-                        <button class="icon-btn play-main" id="audioPlayBtn" onclick="toggleAudioPlay()">▶</button>
-                        <button class="icon-btn" onclick="stepAudio(5)">⏩</button>
+                        <button class="icon-btn skip" onclick="audioPrev()"><i data-lucide="skip-back"></i></button>
+                        <button class="icon-btn" onclick="stepAudio(-10)"><i data-lucide="rotate-ccw"></i></button>
+                        <button class="icon-btn play-main" id="audioPlayBtn" onclick="toggleAudioPlay()"><i data-lucide="play"></i></button>
+                        <button class="icon-btn" onclick="stepAudio(10)"><i data-lucide="rotate-cw"></i></button>
+                        <button class="icon-btn skip" onclick="audioNext()"><i data-lucide="skip-forward"></i></button>
                     </div>
-                    <div style="display:flex;justify-content:center;gap:14px;margin-top:10px;">
-                        <button class="icon-btn" style="font-size:14px;background:rgba(255,255,255,0.04);padding:4px 10px;border-radius:6px;" onclick="audioShuffle()">🔀</button>
-                        <button class="icon-btn" style="font-size:14px;background:rgba(255,255,255,0.04);padding:4px 10px;border-radius:6px;" onclick="audioRepeat()">🔁</button>
-                        <button class="icon-btn" style="font-size:14px;background:rgba(255,255,255,0.04);padding:4px 10px;border-radius:6px;" onclick="audioEqToggle()">🎛️</button>
-                        <button class="icon-btn" style="font-size:14px;background:rgba(255,255,255,0.04);padding:4px 10px;border-radius:6px;" onclick="switchTab('home')">✕</button>
+                    <div class="mz-secondary-row">
+                        <button class="mz-sec-btn" id="audioShuffleBtn" onclick="audioShuffle()"><i data-lucide="shuffle"></i>شافل</button>
+                        <button class="mz-sec-btn" id="audioRepeatBtn" onclick="audioRepeat()"><i data-lucide="repeat"></i>تکرار</button>
+                        <button class="mz-sec-btn" id="audioEqBtn" onclick="audioEqToggle()"><i data-lucide="sliders-horizontal"></i>اکولایزر</button>
                     </div>
-                    <div class="warn-note" style="margin-top:10px;">⚠ ضبط صفحه و اسکرین‌شات ممنوع.</div>
+                    <div class="mz-volume-row">
+                        <i data-lucide="volume-2" id="audioVolIcon" onclick="toggleAudioMute()" style="cursor:pointer;"></i>
+                        <div class="mz-volume-track" id="audioVolumeBar">
+                            <div class="mz-volume-fill" id="aVolFill"></div>
+                            <div class="knob" id="aVolKnob" style="right:100%;"></div>
+                        </div>
+                    </div>
+                    <div class="warn-note"><i data-lucide="shield-alert"></i><span>ضبط صفحه و اسکرین‌شات ممنوع است.</span></div>
                 </div>
             `;
             lucide.createIcons();
@@ -878,7 +1107,7 @@
                 if (stored) {
                     const hwHash = STATE.license?.hwHash || await getHardwareFingerprint();
                     try {
-                        const decrypted = await decryptBlob(stored.blob, hwHash);
+                        const decrypted = await decryptStoredBlob(stored.blob, hwHash);
                         src = URL.createObjectURL(decrypted);
                     } catch(e) {
                         showToast('خطا در رمزگشایی تصویر');
@@ -890,17 +1119,27 @@
             STATE.imageZoom = 1; STATE.imageRotation = 0; STATE.imagePanX = 0; STATE.imagePanY = 0;
             mainArea.innerHTML = `
                 <div class="image-viewer" id="imageViewer">
+                    <div class="iv-topbar">
+                        <div class="v-icon-btn" style="background:rgba(255,255,255,0.08);" onclick="switchTab('home')"><i data-lucide="chevron-right"></i></div>
+                        <span class="iv-title">${item.name}</span>
+                        <div class="v-icon-btn" style="background:rgba(255,255,255,0.08);" onclick="toggleImageFullscreen()"><i data-lucide="maximize"></i></div>
+                    </div>
                     <div class="image-container" id="imageContainer">
-                        <img id="imageDisplay" src="${src}" alt="${item.name}" style="transform: scale(1) rotate(0deg);">
-                        <div class="watermark" style="position:absolute;bottom:70px;right:14px;color:rgba(255,255,255,0.12);font-size:10px;transform:rotate(0);">${phone}</div>
+                        <span class="iv-zoom-badge" id="ivZoomBadge">۱۰۰٪</span>
+                        <img id="imageDisplay" src="${src}" alt="${item.name}" style="transform: scale(1) rotate(0deg) translate(0px,0px);">
+                        <div class="watermark" style="position:absolute;bottom:16px;right:14px;color:rgba(255,255,255,0.14);font-size:10px;transform:rotate(-10deg);">${phone}</div>
                     </div>
                     <div class="image-toolbar">
-                        <button class="icon-btn" onclick="imageZoomOut()"><i data-lucide="minus"></i></button>
-                        <button class="icon-btn" onclick="imageZoomReset()"><i data-lucide="home"></i></button>
-                        <button class="icon-btn" onclick="imageZoomIn()"><i data-lucide="plus"></i></button>
-                        <button class="icon-btn" onclick="imageRotateLeft()"><i data-lucide="rotate-ccw"></i></button>
-                        <button class="icon-btn" onclick="imageRotateRight()"><i data-lucide="rotate-cw"></i></button>
-                        <button class="icon-btn" onclick="switchTab('home')"><i data-lucide="x"></i></button>
+                        <div class="iv-group">
+                            <button class="icon-btn" onclick="imageZoomOut()" title="کوچک‌نمایی"><i data-lucide="zoom-out"></i></button>
+                            <button class="icon-btn" onclick="imageZoomReset()" title="اندازه واقعی"><i data-lucide="scan"></i></button>
+                            <button class="icon-btn" onclick="imageZoomIn()" title="بزرگ‌نمایی"><i data-lucide="zoom-in"></i></button>
+                        </div>
+                        <div class="iv-group">
+                            <button class="icon-btn" onclick="imageRotateLeft()" title="چرخش به چپ"><i data-lucide="rotate-ccw"></i></button>
+                            <button class="icon-btn" onclick="imageRotateRight()" title="چرخش به راست"><i data-lucide="rotate-cw"></i></button>
+                            <button class="icon-btn" onclick="imageFlipH()" title="واژگونی افقی"><i data-lucide="flip-horizontal-2"></i></button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -911,6 +1150,20 @@
     }
 
     // ================================================================
+    // UTIL: قالب‌بندی زمان (mm:ss یا hh:mm:ss برای فایل‌های طولانی)
+    // ================================================================
+    function formatTime(sec) {
+        if (!isFinite(sec) || sec < 0) sec = 0;
+        sec = Math.floor(sec);
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        const pad = n => String(n).padStart(2, '0');
+        const str = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+        return str.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
+    // ================================================================
     // VIDEO PLAYER
     // ================================================================
     let videoSpeed = 1.0;
@@ -918,18 +1171,44 @@
     let isDraggingVideo = false;
     let dragStartX = 0;
 
+    const VIDEO_SPEEDS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+    let videoSpeedIdx = 2;
+    let videoVolume = 1.0;
+    let videoBrightness = 0.7;
+    let videoMuted = false;
+    let vUiHideTimer = null;
+    let vGestureMode = null; // 'seek' | 'volume' | 'brightness'
+    let vGestureStartX = 0, vGestureStartY = 0, vGestureStartTime = 0, vGestureStartVal = 0;
+    let vTapTimer = null;
+
     function initVideoPlayer(item, isResume) {
         const video = document.getElementById('playerVideo');
         const btn = document.getElementById('playBtn');
         STATE.currentMediaElement = video;
         STATE.currentFileType = 'video';
+        isVideoLocked = false;
+        videoSpeedIdx = 2;
+        videoVolume = 1.0; videoMuted = false; videoBrightness = 0.7;
+        video.volume = 1.0;
+        video.playbackRate = 1.0;
         video.load();
-        if (isResume && item.progress) {
-            video.currentTime = (item.progress / 100) * video.duration || 0;
-        }
+        updateVideoFilter();
+        renderVolIcon();
+
         video.addEventListener('loadedmetadata', () => {
             document.getElementById('vDuration').textContent = formatTime(video.duration);
+            document.getElementById('playerDuration').innerHTML = `<i data-lucide="clock"></i>${formatTime(video.duration)}`;
+            lucide.createIcons();
+            if (isResume && item.progress) {
+                video.currentTime = (item.progress / 100) * video.duration || 0;
+            }
             updateVideoProgress();
+        });
+        video.addEventListener('progress', () => {
+            if (video.buffered.length && video.duration) {
+                const end = video.buffered.end(video.buffered.length - 1);
+                document.getElementById('vBufferedFill').style.width = (end / video.duration * 100) + '%';
+            }
         });
         video.addEventListener('timeupdate', () => {
             updateVideoProgress();
@@ -938,94 +1217,107 @@
             if (pct >= 99) item.watched = true;
             saveData();
             renderLibrary();
-            document.getElementById('resumeNote').textContent = `↻ از دقیقهٔ ${formatTime(video.currentTime)} ادامه بده`;
         });
+        video.addEventListener('play', () => { setVideoPlayIcon(true); scheduleHideUi(); });
+        video.addEventListener('pause', () => { setVideoPlayIcon(false); showVideoUi(); });
         video.addEventListener('ended', () => {
             item.watched = true; item.progress = 100; saveData(); renderLibrary();
-            btn.textContent = '▶';
+            setVideoPlayIcon(false); showVideoUi();
         });
         video.addEventListener('contextmenu', e => e.preventDefault());
 
-        const viewport = document.getElementById('videoViewport');
-        viewport.addEventListener('touchstart', (e) => {
-            if (isVideoLocked) return;
-            const touch = e.touches[0];
-            const rect = viewport.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const pct = Math.max(0, Math.min(1, x / rect.width));
-            video.currentTime = pct * video.duration;
-            isDraggingVideo = true;
-            dragStartX = x;
-        }, { passive: true });
-        viewport.addEventListener('touchmove', (e) => {
-            if (!isDraggingVideo || isVideoLocked) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = viewport.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const delta = (x - dragStartX) / rect.width;
-            const pct = Math.max(0, Math.min(1, (video.currentTime / video.duration) + delta));
-            video.currentTime = pct * video.duration;
-            dragStartX = x;
-        }, { passive: false });
-        viewport.addEventListener('touchend', () => { isDraggingVideo = false; }, { passive: true });
+        setupVideoGestures(video);
 
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden && !video.paused) {
-                showToast('⚠️ خروج از صفحه ممنوع');
-                video.pause();
-                btn.textContent = '▶';
-            }
-        });
+        document.addEventListener('visibilitychange', videoVisibilityHandler);
+
         document.getElementById('progressBar').addEventListener('click', (e) => {
-            if (isVideoLocked) return;
+            if (isVideoLocked || !video.duration) return;
             const rect = e.currentTarget.getBoundingClientRect();
-            video.currentTime = ((e.clientX - rect.left) / rect.width) * video.duration;
+            const pct = Math.max(0, Math.min(1, (rect.right - e.clientX) / rect.width));
+            video.currentTime = pct * video.duration;
             updateVideoProgress();
         });
+
         video.pause();
-        btn.textContent = '▶';
+        setVideoPlayIcon(false);
+    }
+
+    function videoVisibilityHandler() {
+        const video = document.getElementById('playerVideo');
+        if (video && document.hidden && !video.paused) {
+            showToast('⚠️ خروج از صفحه ممنوع');
+            video.pause();
+        }
+    }
+
+    function setVideoPlayIcon(playing) {
+        const btn = document.getElementById('playBtn');
+        if (!btn) return;
+        btn.innerHTML = playing ? '<i data-lucide="pause"></i>' : '<i data-lucide="play"></i>';
+        lucide.createIcons();
     }
 
     function togglePlay() {
         const video = document.getElementById('playerVideo');
-        const btn = document.getElementById('playBtn');
         if (!video || !video.src) return;
-        if (video.paused) {
-            video.play();
-            btn.textContent = '⏸';
-        } else {
-            video.pause();
-            btn.textContent = '▶';
-        }
+        if (video.paused) video.play(); else video.pause();
     }
 
     function stepVideo(sec) {
         const video = document.getElementById('playerVideo');
         if (!video) return;
         video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + sec));
+        showVideoUi();
     }
 
-    function setVideoSpeed(val) {
-        videoSpeed = parseFloat(val);
+    function cycleVideoSpeed() {
+        videoSpeedIdx = (videoSpeedIdx + 1) % VIDEO_SPEEDS.length;
+        const val = VIDEO_SPEEDS[videoSpeedIdx];
         const video = document.getElementById('playerVideo');
-        if (video) video.playbackRate = videoSpeed;
+        if (video) video.playbackRate = val;
+        const label = document.getElementById('vSpeedLabel');
+        if (label) label.textContent = val + 'x';
+        showToast(`سرعت پخش: ${val}x`);
     }
 
     function toggleVideoLock() {
         isVideoLocked = !isVideoLocked;
-        document.getElementById('vLockBtn').textContent = isVideoLocked ? '🔒' : '🔓';
-        showToast(isVideoLocked ? 'قفل کنترل فعال شد' : 'قفل کنترل غیرفعال شد');
+        const btn = document.getElementById('vLockToggle');
+        const overlay = document.getElementById('vLockOverlay');
+        if (btn) btn.innerHTML = isVideoLocked ? '<i data-lucide="lock"></i>' : '<i data-lucide="lock-open"></i>';
+        if (overlay) overlay.classList.toggle('show', isVideoLocked);
+        ['vTopBar','vCenterControls','vBottomBar'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('hidden-ui', isVideoLocked);
+        });
+        lucide.createIcons();
+        showToast(isVideoLocked ? 'کنترل‌ها قفل شد' : 'کنترل‌ها باز شد');
     }
 
     function cycleVideoAspect() {
         const video = document.getElementById('playerVideo');
         if (!video) return;
-        const modes = ['contain', 'cover', 'fill'];
-        let idx = modes.indexOf(video.style.objectFit || 'contain');
+        const modes = [{v:'contain',l:'تناسب'},{v:'cover',l:'پرکردن'},{v:'fill',l:'کشیده'}];
+        let idx = modes.findIndex(m => m.v === (video.style.objectFit || 'contain'));
         idx = (idx + 1) % modes.length;
-        video.style.objectFit = modes[idx];
-        showToast(`نسبت: ${modes[idx]}`);
+        video.style.objectFit = modes[idx].v;
+        const label = document.getElementById('vAspectLabel');
+        if (label) label.textContent = modes[idx].l;
+        showToast(`حالت نمایش: ${modes[idx].l}`);
+    }
+
+    function toggleVideoMute() {
+        const video = document.getElementById('playerVideo');
+        if (!video) return;
+        videoMuted = !videoMuted;
+        video.muted = videoMuted;
+        renderVolIcon();
+    }
+
+    function renderVolIcon() {
+        const icon = videoMuted || videoVolume === 0 ? 'volume-x' : videoVolume < 0.5 ? 'volume-1' : 'volume-2';
+        const el = document.getElementById('vMuteIcon');
+        if (el && el.parentElement) { el.parentElement.innerHTML = `<i data-lucide="${icon}" id="vMuteIcon"></i>`; lucide.createIcons(); }
     }
 
     function updateVideoProgress() {
@@ -1035,15 +1327,41 @@
         document.getElementById('vSeekFill').style.width = pct + '%';
         document.getElementById('vSeekKnob').style.right = pct + '%';
         document.getElementById('vCurrent').textContent = formatTime(video.currentTime);
+        const note = document.getElementById('resumeNote');
+        if (note) note.innerHTML = `<i data-lucide="history"></i>در حال پخش از دقیقهٔ ${formatTime(video.currentTime)}`;
+    }
+
+    function updateVideoFilter() {
+        const video = document.getElementById('playerVideo');
+        if (video) video.style.filter = `brightness(${0.4 + videoBrightness})`;
+    }
+
+    function showVideoUi() {
+        ['vTopBar','vCenterControls','vBottomBar'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && !isVideoLocked) el.classList.remove('hidden-ui');
+        });
+        scheduleHideUi();
+    }
+    function scheduleHideUi() {
+        clearTimeout(vUiHideTimer);
+        const video = document.getElementById('playerVideo');
+        vUiHideTimer = setTimeout(() => {
+            if (video && !video.paused && !isVideoLocked) {
+                ['vTopBar','vCenterControls','vBottomBar'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('hidden-ui');
+                });
+            }
+        }, 3200);
     }
 
     function toggleFullscreen() {
-        const video = document.getElementById('playerVideo');
-        if (!video) return;
+        const container = document.getElementById('videoViewport');
+        if (!container) return;
         if (document.fullscreenElement) {
             document.exitFullscreen();
         } else {
-            const container = document.getElementById('videoViewport');
             container.requestFullscreen().catch(() => {});
         }
     }
@@ -1055,7 +1373,7 @@
         if (!video) return;
         if (!pipContainer) {
             pipContainer = document.createElement('div');
-            pipContainer.style.cssText = 'position:fixed;bottom:70px;right:12px;width:160px;height:90px;background:#000;border:2px solid #333;border-radius:10px;z-index:999;overflow:hidden;display:flex;flex-direction:column;';
+            pipContainer.style.cssText = 'position:fixed;bottom:70px;left:12px;width:160px;height:90px;background:#000;border-radius:12px;z-index:999;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);';
             pipVideo = document.createElement('video');
             pipVideo.style.cssText = 'width:100%;height:100%;object-fit:cover;';
             pipVideo.src = video.src;
@@ -1063,40 +1381,196 @@
             pipVideo.autoplay = true;
             pipContainer.appendChild(pipVideo);
             const closeBtn = document.createElement('button');
-            closeBtn.textContent = '✕';
-            closeBtn.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;';
-            closeBtn.onclick = () => { pipContainer.remove(); pipContainer = null; };
+            closeBtn.innerHTML = '✕';
+            closeBtn.style.cssText = 'position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;';
+            closeBtn.onclick = () => { pipContainer.remove(); pipContainer = null; pipVideo = null; };
             pipContainer.appendChild(closeBtn);
             document.body.appendChild(pipContainer);
             video.pause();
-            document.getElementById('playBtn').textContent = '▶';
         } else {
             pipContainer.remove();
             pipContainer = null;
             video.play();
-            document.getElementById('playBtn').textContent = '⏸';
         }
+    }
+
+    // ---- ژست‌های لمسی: راست=صدا، چپ=روشنایی، دابل‌تپ=جهش ۱۰ ثانیه‌ای، تک‌تپ=نمایش/مخفی UI
+    function setupVideoGestures(video) {
+        const layer = document.getElementById('vGestureLayer');
+        if (!layer) return;
+        let lastTapTime = 0, lastTapZone = null;
+        let touchMoved = false;
+
+        layer.addEventListener('touchstart', (e) => {
+            if (isVideoLocked) return;
+            const touch = e.touches[0];
+            vGestureStartX = touch.clientX; vGestureStartY = touch.clientY;
+            touchMoved = false;
+            vGestureMode = null;
+        }, { passive: true });
+
+        layer.addEventListener('touchmove', (e) => {
+            if (isVideoLocked) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - vGestureStartX;
+            const dy = touch.clientY - vGestureStartY;
+            const rect = layer.getBoundingClientRect();
+            if (!vGestureMode) {
+                if (Math.abs(dx) > 12 || Math.abs(dy) > 12) {
+                    touchMoved = true;
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        vGestureMode = 'seek';
+                        vGestureStartTime = video.currentTime;
+                    } else {
+                        const zoneX = vGestureStartX - rect.left;
+                        vGestureMode = zoneX < rect.width / 2 ? 'brightness' : 'volume';
+                        vGestureStartVal = vGestureMode === 'brightness' ? videoBrightness : videoVolume;
+                    }
+                }
+            }
+            if (vGestureMode === 'seek' && video.duration) {
+                e.preventDefault();
+                const deltaSec = (dx / rect.width) * 90;
+                const newTime = Math.max(0, Math.min(video.duration, vGestureStartTime + deltaSec));
+                video.currentTime = newTime;
+                const isFwd = deltaSec >= 0;
+                const flash = document.getElementById(isFwd ? 'vSeekFlashR' : 'vSeekFlashL');
+                const flashTxt = document.getElementById(isFwd ? 'vSeekFlashRTxt' : 'vSeekFlashLTxt');
+                if (flash && flashTxt) {
+                    flashTxt.textContent = formatTime(Math.abs(deltaSec)) + ' ' + (isFwd ? 'جلو' : 'عقب');
+                    flash.classList.add('show');
+                }
+            } else if (vGestureMode === 'brightness') {
+                e.preventDefault();
+                const deltaPct = -dy / rect.height;
+                videoBrightness = Math.max(0, Math.min(1, vGestureStartVal + deltaPct));
+                updateVideoFilter();
+                const ind = document.getElementById('vBrightIndicator');
+                document.getElementById('vBrightFill').style.height = (videoBrightness * 100) + '%';
+                document.getElementById('vBrightVal').textContent = Math.round(videoBrightness * 100) + '%';
+                if (ind) ind.classList.add('show');
+            } else if (vGestureMode === 'volume') {
+                e.preventDefault();
+                const deltaPct = -dy / rect.height;
+                videoVolume = Math.max(0, Math.min(1, vGestureStartVal + deltaPct));
+                video.volume = videoVolume;
+                videoMuted = videoVolume === 0;
+                video.muted = videoMuted;
+                const ind = document.getElementById('vVolIndicator');
+                document.getElementById('vVolFill').style.height = (videoVolume * 100) + '%';
+                document.getElementById('vVolVal').textContent = Math.round(videoVolume * 100) + '%';
+                if (ind) ind.classList.add('show');
+                renderVolIcon();
+            }
+        }, { passive: false });
+
+        layer.addEventListener('touchend', (e) => {
+            document.getElementById('vSeekFlashL')?.classList.remove('show');
+            document.getElementById('vSeekFlashR')?.classList.remove('show');
+            document.getElementById('vBrightIndicator')?.classList.remove('show');
+            document.getElementById('vVolIndicator')?.classList.remove('show');
+
+            if (!touchMoved && !isVideoLocked) {
+                const zone = e.target.closest('.v-gesture-zone')?.dataset.zone || 'center';
+                const now = Date.now();
+                if (now - lastTapTime < 320 && lastTapZone === zone && zone !== 'center') {
+                    // دابل‌تپ روی زون چپ/راست => جهش ۱۰ ثانیه‌ای با نمایش آیکون
+                    if (zone === 'right') { stepVideo(10); flashCenterIcon('fast-forward'); }
+                    else { stepVideo(-10); flashCenterIcon('rewind'); }
+                    lastTapTime = 0;
+                } else if (now - lastTapTime < 320 && lastTapZone === zone && zone === 'center') {
+                    togglePlay();
+                    lastTapTime = 0;
+                } else {
+                    lastTapTime = now;
+                    lastTapZone = zone;
+                    clearTimeout(vTapTimer);
+                    vTapTimer = setTimeout(() => {
+                        const bars = ['vTopBar','vCenterControls','vBottomBar'].map(id => document.getElementById(id));
+                        const isHidden = bars[0]?.classList.contains('hidden-ui');
+                        if (isHidden) showVideoUi();
+                        else bars.forEach(el => el?.classList.add('hidden-ui'));
+                    }, 300);
+                }
+            }
+            vGestureMode = null;
+            touchMoved = false;
+        }, { passive: true });
+
+        // Mouse support for desktop
+        layer.addEventListener('dblclick', (e) => {
+            if (isVideoLocked) return;
+            const rect = layer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            if (x < rect.width * 0.35) { stepVideo(-10); flashCenterIcon('rewind'); }
+            else if (x > rect.width * 0.65) { stepVideo(10); flashCenterIcon('fast-forward'); }
+            else togglePlay();
+        });
+        layer.addEventListener('click', () => { if (!isVideoLocked) showVideoUi(); });
+    }
+
+    function flashCenterIcon(iconName) {
+        const el = document.getElementById('vCenterIcon');
+        if (!el) return;
+        el.innerHTML = `<i data-lucide="${iconName}"></i>`;
+        lucide.createIcons();
+        el.classList.add('show');
+        clearTimeout(el._t);
+        el._t = setTimeout(() => el.classList.remove('show'), 500);
     }
 
     // ================================================================
     // AUDIO PLAYER
     // ================================================================
+    let audioCtx = null, audioAnalyser = null, audioSourceNode = null, audioDataArray = null;
+    let audioVolumeBeforeMute = 1.0;
+    let audioRafId = null;
+
+    function setupAudioAnalyser(audio) {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioSourceNode) { try { audioSourceNode.disconnect(); } catch(e) {} }
+            audioSourceNode = audioCtx.createMediaElementSource(audio);
+            audioAnalyser = audioCtx.createAnalyser();
+            audioAnalyser.fftSize = 64;
+            audioDataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+            audioSourceNode.connect(audioAnalyser);
+            audioAnalyser.connect(audioCtx.destination);
+        } catch(e) { /* مرورگرهای قدیمی: fallback به انیمیشن ساده در startEqAnimation */ }
+    }
+
     function initAudioPlayer(item, src, isResume) {
-        const audio = new Audio(src);
+        // متوقف کردن و آزادسازی صوت قبلی تا صداها قاطی نشوند
+        if (STATE.audioElement) {
+            try { STATE.audioElement.pause(); STATE.audioElement.src = ''; STATE.audioElement.load(); } catch(e) {}
+        }
+        cancelAnimationFrame(audioRafId);
+
+        const audio = new Audio();
+        audio.crossOrigin = 'anonymous';
+        audio.preload = 'auto';
+        audio.src = src;
         STATE.audioElement = audio;
         STATE.currentMediaElement = audio;
         STATE.currentFileType = 'audio';
+        STATE.isAudioPlaying = false;
+
+        audio.volume = 1.0;
+        const volFill = document.getElementById('aVolFill');
+        const volKnob = document.getElementById('aVolKnob');
+        if (volFill) volFill.style.width = '100%';
+        if (volKnob) volKnob.style.right = '100%';
 
         audio.load();
-        if (isResume && item.progress) {
-            audio.currentTime = (item.progress / 100) * audio.duration || 0;
-        }
 
         document.getElementById('audioTitle').textContent = item.name;
         document.getElementById('audioArtist').textContent = 'فرادانش';
 
         audio.addEventListener('loadedmetadata', () => {
             document.getElementById('aDuration').textContent = formatTime(audio.duration);
+            if (isResume && item.progress) {
+                audio.currentTime = (item.progress / 100) * audio.duration || 0;
+            }
         });
 
         audio.addEventListener('timeupdate', () => {
@@ -1119,41 +1593,96 @@
             }
         });
 
+        audio.addEventListener('play', () => {
+            STATE.isAudioPlaying = true;
+            document.getElementById('audioPlayBtn').innerHTML = '<i data-lucide="pause"></i>';
+            document.getElementById('audioArtwork')?.classList.remove('paused');
+            lucide.createIcons();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            startEqAnimation();
+        });
+        audio.addEventListener('pause', () => {
+            STATE.isAudioPlaying = false;
+            document.getElementById('audioPlayBtn').innerHTML = '<i data-lucide="play"></i>';
+            document.getElementById('audioArtwork')?.classList.add('paused');
+            lucide.createIcons();
+        });
+
         audio.addEventListener('contextmenu', e => e.preventDefault());
 
         document.getElementById('audioProgressBar').addEventListener('click', (e) => {
+            if (!audio.duration) return;
             const rect = e.currentTarget.getBoundingClientRect();
-            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+            const pct = Math.max(0, Math.min(1, (rect.right - e.clientX) / rect.width));
+            audio.currentTime = pct * audio.duration;
         });
 
-        if (isResume && item.progress) {
-            audio.currentTime = (item.progress / 100) * audio.duration || 0;
+        const volumeBar = document.getElementById('audioVolumeBar');
+        function setVolumeFromEvent(e) {
+            const rect = volumeBar.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const pct = Math.max(0, Math.min(1, (rect.right - clientX) / rect.width));
+            audio.volume = pct;
+            document.getElementById('aVolFill').style.width = (pct * 100) + '%';
+            document.getElementById('aVolKnob').style.right = (pct * 100) + '%';
+            renderAudioVolIcon(pct);
         }
+        volumeBar.addEventListener('click', setVolumeFromEvent);
+        let draggingVol = false;
+        volumeBar.addEventListener('mousedown', () => draggingVol = true);
+        document.addEventListener('mousemove', (e) => { if (draggingVol) setVolumeFromEvent(e); });
+        document.addEventListener('mouseup', () => draggingVol = false);
+        volumeBar.addEventListener('touchstart', () => draggingVol = true, { passive: true });
+        volumeBar.addEventListener('touchmove', (e) => { if (draggingVol) setVolumeFromEvent(e); }, { passive: true });
+        volumeBar.addEventListener('touchend', () => draggingVol = false, { passive: true });
+
         audio.pause();
-        document.getElementById('audioPlayBtn').textContent = '▶';
-        STATE.isAudioPlaying = false;
+        document.getElementById('audioPlayBtn').innerHTML = '<i data-lucide="play"></i>';
+        lucide.createIcons();
+        document.getElementById('audioArtwork')?.classList.add('spinning', 'paused');
+
+        // به‌روزرسانی وضعیت شافل/تکرار/اکولایزر روی دکمه‌ها
+        document.getElementById('audioShuffleBtn')?.classList.toggle('mz-active', STATE.audioShuffleMode);
+        document.getElementById('audioRepeatBtn')?.classList.toggle('mz-active', STATE.audioRepeatMode);
+        document.getElementById('audioEqBtn')?.classList.toggle('mz-active', STATE.audioEqActive);
+
+        setupAudioAnalyser(audio);
         startEqAnimation();
 
         STATE.audioPlaylist = STATE.library.filter(f => f.type === 'audio');
         STATE.audioCurrentIndex = STATE.audioPlaylist.findIndex(f => f.id === item.id);
         if (STATE.audioCurrentIndex === -1) STATE.audioCurrentIndex = 0;
+        const posEl = document.getElementById('audioTrackPos');
+        if (posEl && STATE.audioPlaylist.length) posEl.textContent = `${STATE.audioCurrentIndex + 1} از ${STATE.audioPlaylist.length}`;
+    }
+
+    function renderAudioVolIcon(vol) {
+        const wrap = document.getElementById('audioVolIcon')?.parentElement;
+        if (!wrap) return;
+        const icon = vol === 0 ? 'volume-x' : vol < 0.5 ? 'volume-1' : 'volume-2';
+        const el = document.getElementById('audioVolIcon');
+        if (el) el.setAttribute('data-lucide', icon);
+        lucide.createIcons();
+    }
+
+    function toggleAudioMute() {
+        const audio = STATE.audioElement;
+        if (!audio) return;
+        if (audio.volume > 0) {
+            audioVolumeBeforeMute = audio.volume;
+            audio.volume = 0;
+        } else {
+            audio.volume = audioVolumeBeforeMute || 1;
+        }
+        document.getElementById('aVolFill').style.width = (audio.volume * 100) + '%';
+        document.getElementById('aVolKnob').style.right = (audio.volume * 100) + '%';
+        renderAudioVolIcon(audio.volume);
     }
 
     function toggleAudioPlay() {
         const audio = STATE.audioElement;
-        const btn = document.getElementById('audioPlayBtn');
         if (!audio || !audio.src) return;
-        if (audio.paused) {
-            audio.play();
-            btn.textContent = '⏸';
-            STATE.isAudioPlaying = true;
-            startEqAnimation();
-        } else {
-            audio.pause();
-            btn.textContent = '▶';
-            STATE.isAudioPlaying = false;
-            stopEqAnimation();
-        }
+        if (audio.paused) audio.play().catch(()=>{}); else audio.pause();
     }
 
     function stepAudio(sec) {
@@ -1182,65 +1711,71 @@
 
     function audioShuffle() {
         STATE.audioShuffleMode = !STATE.audioShuffleMode;
-        showToast(STATE.audioShuffleMode ? '🔀 شافل فعال' : '🔀 شافل غیرفعال');
+        document.getElementById('audioShuffleBtn')?.classList.toggle('mz-active', STATE.audioShuffleMode);
+        showToast(STATE.audioShuffleMode ? 'شافل فعال شد' : 'شافل غیرفعال شد');
     }
 
     function audioRepeat() {
         STATE.audioRepeatMode = !STATE.audioRepeatMode;
-        showToast(STATE.audioRepeatMode ? '🔁 تکرار فعال' : '🔁 تکرار غیرفعال');
+        document.getElementById('audioRepeatBtn')?.classList.toggle('mz-active', STATE.audioRepeatMode);
+        showToast(STATE.audioRepeatMode ? 'تکرار فعال شد' : 'تکرار غیرفعال شد');
     }
 
     function audioEqToggle() {
         STATE.audioEqActive = !STATE.audioEqActive;
-        const bars = document.querySelectorAll('.eq-bar .bar');
-        bars.forEach(bar => {
-            if (STATE.audioEqActive) {
-                bar.style.animation = `eqPulse ${0.4 + Math.random() * 0.6}s ease-in-out infinite alternate`;
-            } else {
-                bar.style.animation = 'none';
-                bar.style.height = '30%';
-            }
-        });
-        showToast(STATE.audioEqActive ? '🎛️ اکولایزر فعال' : '🎛️ اکولایزر غیرفعال');
+        document.getElementById('audioEqBtn')?.classList.toggle('mz-active', STATE.audioEqActive);
+        showToast(STATE.audioEqActive ? 'اکولایزر فعال شد' : 'اکولایزر غیرفعال شد');
     }
 
-    let eqInterval = null;
     function startEqAnimation() {
-        if (eqInterval) return;
+        cancelAnimationFrame(audioRafId);
         const bars = document.querySelectorAll('.eq-bar .bar');
-        eqInterval = setInterval(() => {
-            if (!STATE.isAudioPlaying) return;
-            bars.forEach(bar => {
-                if (STATE.audioEqActive) {
-                    bar.style.height = (20 + Math.random() * 80) + '%';
-                } else {
-                    bar.style.height = (30 + Math.random() * 40) + '%';
-                }
-            });
-        }, 150);
+        if (!bars.length) return;
+        function tick() {
+            audioRafId = requestAnimationFrame(tick);
+            if (!STATE.isAudioPlaying) {
+                bars.forEach(bar => { bar.style.height = '18%'; });
+                return;
+            }
+            if (audioAnalyser && audioDataArray) {
+                audioAnalyser.getByteFrequencyData(audioDataArray);
+                const step = Math.floor(audioDataArray.length / bars.length) || 1;
+                bars.forEach((bar, i) => {
+                    const v = audioDataArray[i * step] || 0;
+                    const boost = STATE.audioEqActive ? 1.35 : 1;
+                    const pct = Math.max(10, Math.min(100, (v / 255) * 100 * boost));
+                    bar.style.height = pct + '%';
+                });
+            } else {
+                // fallback بدون Web Audio API
+                bars.forEach(bar => {
+                    const pct = STATE.audioEqActive ? (20 + Math.random() * 80) : (25 + Math.random() * 45);
+                    bar.style.height = pct + '%';
+                });
+            }
+        }
+        tick();
     }
     function stopEqAnimation() {
-        if (eqInterval) {
-            clearInterval(eqInterval);
-            eqInterval = null;
-        }
+        cancelAnimationFrame(audioRafId);
         const bars = document.querySelectorAll('.eq-bar .bar');
-        bars.forEach(bar => { bar.style.height = '30%'; });
+        bars.forEach(bar => { bar.style.height = '18%'; });
     }
 
     // ================================================================
-    // IMAGE VIEWER
+    // IMAGE VIEWER — رفتار حرفه‌ای شبیه ویرایشگر تصویر دسکتاپ: pinch-zoom، pan، فلیپ
     // ================================================================
     let imageSrc = '';
-    let imageZoom = 1, imageRotation = 0, imagePanX = 0, imagePanY = 0;
+    let imageZoom = 1, imageRotation = 0, imagePanX = 0, imagePanY = 0, imageFlipX = 1;
     let isDraggingImg = false, dragStartXImg = 0, dragStartYImg = 0;
+    let pinchStartDist = 0, pinchStartZoom = 1;
+    let lastImgTapTime = 0;
 
     function initImageViewer(src) {
         imageSrc = src;
-        imageZoom = 1; imageRotation = 0; imagePanX = 0; imagePanY = 0;
+        imageZoom = 1; imageRotation = 0; imagePanX = 0; imagePanY = 0; imageFlipX = 1;
         updateImageTransform();
         const container = document.getElementById('imageContainer');
-        const img = document.getElementById('imageDisplay');
 
         container.addEventListener('mousedown', (e) => {
             isDraggingImg = true;
@@ -1254,15 +1789,39 @@
             updateImageTransform();
         });
         document.addEventListener('mouseup', () => { isDraggingImg = false; });
+        container.addEventListener('dblclick', () => {
+            if (imageZoom > 1) imageZoomReset(); else { imageZoom = 2; updateImageTransform(); }
+        });
 
         let touchStartX = 0, touchStartY = 0;
         container.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            touchStartX = touch.clientX - imagePanX;
-            touchStartY = touch.clientY - imagePanY;
-            isDraggingImg = true;
+            if (e.touches.length === 2) {
+                pinchStartDist = getTouchDist(e.touches);
+                pinchStartZoom = imageZoom;
+                isDraggingImg = false;
+            } else if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                touchStartX = touch.clientX - imagePanX;
+                touchStartY = touch.clientY - imagePanY;
+                isDraggingImg = true;
+                const now = Date.now();
+                if (now - lastImgTapTime < 300) {
+                    if (imageZoom > 1) imageZoomReset(); else { imageZoom = 2; updateImageTransform(); }
+                    lastImgTapTime = 0;
+                } else {
+                    lastImgTapTime = now;
+                }
+            }
         }, { passive: true });
         container.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const dist = getTouchDist(e.touches);
+                const scale = dist / (pinchStartDist || dist);
+                imageZoom = Math.max(0.5, Math.min(10, pinchStartZoom * scale));
+                updateImageTransform();
+                return;
+            }
             if (!isDraggingImg) return;
             e.preventDefault();
             const touch = e.touches[0];
@@ -1274,38 +1833,64 @@
 
         container.addEventListener('wheel', (e) => {
             e.preventDefault();
-            const delta = e.deltaY > 0 ? -0.1 : 0.1;
-            imageZoom = Math.max(0.1, Math.min(10, imageZoom + delta));
+            const delta = e.deltaY > 0 ? -0.15 : 0.15;
+            imageZoom = Math.max(0.5, Math.min(10, imageZoom + delta));
             updateImageTransform();
         }, { passive: false });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === '+' || e.key === '=') { imageZoomIn(); e.preventDefault(); }
-            if (e.key === '-') { imageZoomOut(); e.preventDefault(); }
-            if (e.key === 'r' || e.key === 'R') { imageRotateRight(); e.preventDefault(); }
-            if (e.key === 'Escape') { switchTab('home'); e.preventDefault(); }
-        });
+        document.addEventListener('keydown', imageKeyHandler);
+    }
+
+    function imageKeyHandler(e) {
+        if (!document.getElementById('imageViewer')) { document.removeEventListener('keydown', imageKeyHandler); return; }
+        if (e.key === '+' || e.key === '=') { imageZoomIn(); e.preventDefault(); }
+        if (e.key === '-') { imageZoomOut(); e.preventDefault(); }
+        if (e.key === 'r' || e.key === 'R') { imageRotateRight(); e.preventDefault(); }
+        if (e.key === 'Escape') { switchTab('home'); e.preventDefault(); }
+    }
+
+    function getTouchDist(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
     function updateImageTransform() {
         const img = document.getElementById('imageDisplay');
         if (!img) return;
-        img.style.transform = `scale(${imageZoom}) rotate(${imageRotation}deg) translate(${imagePanX}px, ${imagePanY}px)`;
+        img.style.transform = `scale(${imageZoom * imageFlipX}, ${imageZoom}) rotate(${imageRotation}deg) translate(${imagePanX / imageZoom}px, ${imagePanY / imageZoom}px)`;
+        const badge = document.getElementById('ivZoomBadge');
+        if (badge) badge.textContent = Math.round(imageZoom * 100).toLocaleString('fa-IR') + '٪';
     }
 
     function imageZoomIn() { imageZoom = Math.min(10, imageZoom + 0.25); updateImageTransform(); }
-    function imageZoomOut() { imageZoom = Math.max(0.1, imageZoom - 0.25); updateImageTransform(); }
+    function imageZoomOut() { imageZoom = Math.max(0.5, imageZoom - 0.25); updateImageTransform(); }
     function imageZoomReset() { imageZoom = 1; imagePanX = 0; imagePanY = 0; updateImageTransform(); }
     function imageRotateLeft() { imageRotation -= 90; updateImageTransform(); }
     function imageRotateRight() { imageRotation += 90; updateImageTransform(); }
+    function imageFlipH() { imageFlipX *= -1; updateImageTransform(); }
+    function toggleImageFullscreen() {
+        const el = document.getElementById('imageViewer');
+        if (!el) return;
+        if (document.fullscreenElement) document.exitFullscreen();
+        else el.requestFullscreen().catch(() => {});
+    }
 
     // ================================================================
     // PDF
     // ================================================================
+    let pdfScale = 1.5;
+    const PDF_SCALE_MIN = 0.6, PDF_SCALE_MAX = 3.5;
+    let pdfSearchMatches = [];
+    let pdfSearchIdx = -1;
+    let pdfThumbsLoaded = false;
+    let pdfPinchStartDist = 0, pdfPinchStartScale = 1;
+    let pdfSwipeStartX = 0, pdfSwipeStartY = 0;
+
     async function loadPdf(item) {
-        const canvas = document.getElementById('pdfCanvas');
-        const ctx = canvas.getContext('2d');
         document.getElementById('pdfTitle').textContent = item.name || 'PDF';
+        const loading = document.getElementById('pdfLoading');
+        if (loading) loading.style.display = 'flex';
         try {
             let data;
             if (item.url) {
@@ -1316,63 +1901,176 @@
                 const stored = await getFile(item.id);
                 if (!stored) throw new Error('فایل یافت نشد');
                 const hwHash = STATE.license?.hwHash || await getHardwareFingerprint();
-                const decrypted = await decryptBlob(stored.blob, hwHash);
+                const decrypted = await decryptStoredBlob(stored.blob, hwHash);
                 data = await decrypted.arrayBuffer();
             }
             STATE.pdfDoc = await pdfjsLib.getDocument({ data }).promise;
             STATE.pdfPageNum = 1;
-            renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum, canvas, ctx);
-            document.getElementById('pdfPageIndicator').textContent = `صفحه ${STATE.pdfPageNum} از ${STATE.pdfDoc.numPages}`;
+            pdfScale = 1.5;
+            pdfThumbsLoaded = false;
+            updatePdfZoomLabel();
+            await renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum);
+            document.getElementById('pdfPageIndicator').textContent = `صفحه ${toFa(STATE.pdfPageNum)} از ${toFa(STATE.pdfDoc.numPages)}`;
+            setupPdfGestures();
         } catch(e) {
             showToast('خطا در بارگذاری PDF: ' + e.message);
             console.error('PDF Error:', e);
+        } finally {
+            if (loading) loading.style.display = 'none';
         }
     }
 
-    function renderPdfPage(doc, pageNum, canvas, ctx) {
-        doc.getPage(pageNum).then(page => {
-            const viewport = page.getViewport({ scale: 1.5 });
-            canvas.width = viewport.width; canvas.height = viewport.height;
-            page.render({ canvasContext: ctx, viewport }).promise.then(() => {});
-        }).catch(e => {
+    function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+
+    async function renderPdfPage(doc, pageNum) {
+        const canvas = document.getElementById('pdfCanvas');
+        const holder = document.getElementById('pdfCanvasHolder');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        try {
+            const page = await doc.getPage(pageNum);
+            const viewport = page.getViewport({ scale: pdfScale });
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = viewport.width * dpr;
+            canvas.height = viewport.height * dpr;
+            canvas.style.width = viewport.width + 'px';
+            canvas.style.height = viewport.height + 'px';
+            if (holder) { holder.style.width = viewport.width + 'px'; holder.style.height = viewport.height + 'px'; }
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            highlightThumb(pageNum);
+        } catch(e) {
             showToast('خطا در رندر PDF: ' + e.message);
-        });
+        }
     }
 
     function nextPdfPage() {
         if (!STATE.pdfDoc || STATE.pdfPageNum >= STATE.pdfDoc.numPages) return;
         STATE.pdfPageNum++;
-        const canvas = document.getElementById('pdfCanvas');
-        renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum, canvas, canvas.getContext('2d'));
-        document.getElementById('pdfPageIndicator').textContent = `صفحه ${STATE.pdfPageNum} از ${STATE.pdfDoc.numPages}`;
+        renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum);
+        document.getElementById('pdfPageIndicator').textContent = `صفحه ${toFa(STATE.pdfPageNum)} از ${toFa(STATE.pdfDoc.numPages)}`;
     }
 
     function prevPdfPage() {
         if (!STATE.pdfDoc || STATE.pdfPageNum <= 1) return;
         STATE.pdfPageNum--;
-        const canvas = document.getElementById('pdfCanvas');
-        renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum, canvas, canvas.getContext('2d'));
-        document.getElementById('pdfPageIndicator').textContent = `صفحه ${STATE.pdfPageNum} از ${STATE.pdfDoc.numPages}`;
+        renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum);
+        document.getElementById('pdfPageIndicator').textContent = `صفحه ${toFa(STATE.pdfPageNum)} از ${toFa(STATE.pdfDoc.numPages)}`;
     }
 
-    function pdfSearch() {
-        const term = prompt('متن مورد جستجو را وارد کنید:');
-        if (!term) return;
-        const page = STATE.pdfDoc?.getPage(STATE.pdfPageNum);
-        if (page) {
-            page.getTextContent().then(textContent => {
-                const found = textContent.items.some(item => item.str.includes(term));
-                showToast(found ? '✅ متن یافت شد' : '❌ متن یافت نشد');
-            });
+    function goToPdfPage(n) {
+        if (!STATE.pdfDoc || n < 1 || n > STATE.pdfDoc.numPages) return;
+        STATE.pdfPageNum = n;
+        renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum);
+        document.getElementById('pdfPageIndicator').textContent = `صفحه ${toFa(STATE.pdfPageNum)} از ${toFa(STATE.pdfDoc.numPages)}`;
+    }
+
+    function updatePdfZoomLabel() {
+        const el = document.getElementById('pdfZoomVal');
+        if (el) el.textContent = Math.round((pdfScale / 1.5) * 100) + '%';
+    }
+    function pdfZoomIn() {
+        pdfScale = Math.min(PDF_SCALE_MAX, pdfScale + 0.25);
+        updatePdfZoomLabel();
+        if (STATE.pdfDoc) renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum);
+    }
+    function pdfZoomOut() {
+        pdfScale = Math.max(PDF_SCALE_MIN, pdfScale - 0.25);
+        updatePdfZoomLabel();
+        if (STATE.pdfDoc) renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum);
+    }
+
+    function setupPdfGestures() {
+        const wrap = document.getElementById('pdfPageWrap');
+        if (!wrap || wrap._gesturesBound) return;
+        wrap._gesturesBound = true;
+        wrap.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                pdfPinchStartDist = getTouchDist(e.touches);
+                pdfPinchStartScale = pdfScale;
+            } else if (e.touches.length === 1) {
+                pdfSwipeStartX = e.touches[0].clientX;
+                pdfSwipeStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+        wrap.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const dist = getTouchDist(e.touches);
+                const scale = dist / (pdfPinchStartDist || dist);
+                pdfScale = Math.max(PDF_SCALE_MIN, Math.min(PDF_SCALE_MAX, pdfPinchStartScale * scale));
+                updatePdfZoomLabel();
+            }
+        }, { passive: false });
+        wrap.addEventListener('touchend', (e) => {
+            if (e.changedTouches.length === 1 && (!e.touches || e.touches.length === 0)) {
+                const dx = e.changedTouches[0].clientX - pdfSwipeStartX;
+                const dy = e.changedTouches[0].clientY - pdfSwipeStartY;
+                if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5 && wrap.scrollLeft === 0) {
+                    if (dx > 0) prevPdfPage(); else nextPdfPage();
+                    return;
+                }
+            }
+            if (STATE.pdfDoc) renderPdfPage(STATE.pdfDoc, STATE.pdfPageNum);
+        }, { passive: true });
+    }
+
+    function pdfToggleSearch() {
+        const bar = document.getElementById('pdfSearchBar');
+        if (!bar) return;
+        bar.classList.toggle('show');
+        if (bar.classList.contains('show')) document.getElementById('pdfSearchInput')?.focus();
+    }
+
+    async function pdfSearch() {
+        const term = document.getElementById('pdfSearchInput')?.value.trim();
+        const countEl = document.getElementById('pdfSearchCount');
+        if (!term || !STATE.pdfDoc) { if (countEl) countEl.textContent = ''; return; }
+        pdfSearchMatches = [];
+        for (let p = 1; p <= STATE.pdfDoc.numPages; p++) {
+            const page = await STATE.pdfDoc.getPage(p);
+            const textContent = await page.getTextContent();
+            const found = textContent.items.some(it => it.str.toLowerCase().includes(term.toLowerCase()));
+            if (found) pdfSearchMatches.push(p);
+        }
+        if (pdfSearchMatches.length) {
+            pdfSearchIdx = 0;
+            if (countEl) countEl.textContent = `۱ از ${toFa(pdfSearchMatches.length)}`;
+            goToPdfPage(pdfSearchMatches[0]);
+            showToast(`متن در ${toFa(pdfSearchMatches.length)} صفحه یافت شد`);
+        } else {
+            if (countEl) countEl.textContent = 'یافت نشد';
+            showToast('متنی یافت نشد');
         }
     }
 
     function pdfBookmark() {
-        const name = prompt('نام بوکمارک:');
+        const name = prompt('نام نشانک:');
         if (!name) return;
         STATE.pdfBookmarks.push({ page: STATE.pdfPageNum, name, timestamp: Date.now() });
         localStorage.setItem('pdf_bookmarks', JSON.stringify(STATE.pdfBookmarks));
-        showToast(`📑 بوکمارک در صفحه ${STATE.pdfPageNum} ذخیره شد`);
+        showToast(`نشانک در صفحه ${toFa(STATE.pdfPageNum)} ذخیره شد`);
+    }
+
+    async function pdfToggleThumbs() {
+        const strip = document.getElementById('pdfThumbsStrip');
+        if (!strip) return;
+        const showing = strip.style.display !== 'none';
+        strip.style.display = showing ? 'none' : 'flex';
+        if (!showing && !pdfThumbsLoaded && STATE.pdfDoc) {
+            pdfThumbsLoaded = true;
+            const n = STATE.pdfDoc.numPages;
+            let html = '';
+            for (let i = 1; i <= n; i++) {
+                html += `<div class="pdf-thumb-item" id="pdfThumb${i}" onclick="goToPdfPage(${i})">${toFa(i)}</div>`;
+            }
+            strip.innerHTML = html;
+            highlightThumb(STATE.pdfPageNum);
+        }
+    }
+    function highlightThumb(pageNum) {
+        document.querySelectorAll('.pdf-thumb-item').forEach(el => el.classList.remove('active-thumb'));
+        document.getElementById('pdfThumb' + pageNum)?.classList.add('active-thumb');
     }
 
     // ================================================================
@@ -1407,8 +2105,12 @@
     // TAB SWITCHING
     // ================================================================
     function switchTab(tab) {
+        // توقف کامل هر رسانه در حال پخش قبل از تعویض صفحه، تا صداها هرگز قاطی نشوند
+        stopAllActiveMedia();
+
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         const navMap = { home: 'nav-home', explore: 'nav-explore', import: 'nav-import', profile: 'nav-profile' };
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         if (navMap[tab]) document.getElementById(navMap[tab]).classList.add('active');
 
         const mainArea = document.getElementById('mainArea');
@@ -1419,6 +2121,18 @@
         else if (tab === 'pdf') renderPdfView();
         else if (tab === 'payment') renderPayment();
         lucide.createIcons();
+    }
+
+    function stopAllActiveMedia() {
+        // ویدئو همیشه با خروج از صفحه پخش متوقف و آزاد می‌شود (طبق سیاست امنیتی برنامه)
+        const video = document.getElementById('playerVideo');
+        if (video) { try { video.pause(); video.removeAttribute('src'); video.load(); } catch(e) {} }
+        if (pipContainer) { pipContainer.remove(); pipContainer = null; pipVideo = null; }
+        clearTimeout(vUiHideTimer);
+        document.removeEventListener('visibilitychange', videoVisibilityHandler);
+        // توجه: صوت عمداً متوقف نمی‌شود تا کاربر بتواند حین گشت‌وگذار در برنامه به شنیدن ادامه دهد،
+        // دقیقاً مانند رفتار پلیرهای صوتی حرفه‌ای (نظیر Mezzo). صدای جدید همیشه پیش از پخش،
+        // نمونهٔ صوتی قبلی را به‌طور کامل متوقف و آزاد می‌کند (در initAudioPlayer) تا هرگز قاطی نشوند.
     }
 
     function renderHome() {
@@ -1614,23 +2328,38 @@
         const mainArea = document.getElementById('mainArea');
         mainArea.innerHTML = `
             <div class="pdf-shell">
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;background:var(--bg-surface);border-bottom:1px solid var(--border-color);">
-                    <div class="p-back" onclick="switchTab('home')" style="position:static;background:transparent;color:var(--text-main);font-size:16px;cursor:pointer;">→</div>
-                    <div style="font-size:12px;font-weight:600;" id="pdfTitle">PDF</div>
-                    <div style="display:flex;gap:6px;">
-                        <button class="icon-btn" onclick="pdfSearch()" style="font-size:13px;"><i data-lucide="search"></i></button>
-                        <button class="icon-btn" onclick="pdfBookmark()" style="font-size:13px;"><i data-lucide="bookmark"></i></button>
+                <div class="pdf-topbar">
+                    <button class="v-icon-btn" style="background:var(--bg-hover);color:var(--text-main);" onclick="switchTab('home')"><i data-lucide="chevron-right"></i></button>
+                    <div class="pdf-topbar-title" id="pdfTitle">PDF</div>
+                    <div class="pdf-topbar-actions">
+                        <button class="v-icon-btn" style="background:var(--bg-hover);color:var(--text-main);" onclick="pdfToggleSearch()"><i data-lucide="search"></i></button>
+                        <button class="v-icon-btn" style="background:var(--bg-hover);color:var(--text-main);" onclick="pdfBookmark()"><i data-lucide="bookmark"></i></button>
+                        <button class="v-icon-btn" style="background:var(--bg-hover);color:var(--text-main);" onclick="pdfToggleThumbs()"><i data-lucide="layout-grid"></i></button>
                     </div>
                 </div>
-                <div class="pdf-page">
-                    <canvas id="pdfCanvas"></canvas>
-                    <div class="pwm" id="pdfWatermark">09120000000</div>
+                <div class="pdf-search-bar" id="pdfSearchBar">
+                    <input type="text" id="pdfSearchInput" placeholder="جستجو در متن سند..." onkeydown="if(event.key==='Enter') pdfSearch()">
+                    <span class="pdf-search-count" id="pdfSearchCount"></span>
+                    <button class="v-icon-btn" style="width:28px;height:28px;background:var(--bg-hover);color:var(--text-main);" onclick="pdfToggleSearch()"><i data-lucide="x"></i></button>
                 </div>
+                <div class="pdf-page-wrap" id="pdfPageWrap">
+                    <div class="pdf-canvas-holder" id="pdfCanvasHolder">
+                        <canvas id="pdfCanvas"></canvas>
+                    </div>
+                    <div class="pwm" id="pdfWatermark">09120000000</div>
+                    <div class="pdf-loading" id="pdfLoading"><i data-lucide="loader-2"></i><span>در حال بارگذاری سند...</span></div>
+                </div>
+                <div class="pdf-thumbs-strip" id="pdfThumbsStrip" style="display:none;"></div>
                 <div class="pdf-bottombar">
+                    <div class="pdf-zoom-controls">
+                        <button class="v-icon-btn" style="width:26px;height:26px;background:transparent;color:var(--text-main);" onclick="pdfZoomOut()"><i data-lucide="minus" style="width:14px;height:14px;"></i></button>
+                        <span class="pdf-zoom-val" id="pdfZoomVal">150%</span>
+                        <button class="v-icon-btn" style="width:26px;height:26px;background:transparent;color:var(--text-main);" onclick="pdfZoomIn()"><i data-lucide="plus" style="width:14px;height:14px;"></i></button>
+                    </div>
                     <span class="pdf-page-ind" id="pdfPageIndicator">صفحه ۱ از ۱</span>
-                    <div style="display:flex;gap:8px;">
-                        <button class="icon-btn" onclick="prevPdfPage()" style="font-size:14px;">‹</button>
-                        <button class="icon-btn" onclick="nextPdfPage()" style="font-size:14px;">›</button>
+                    <div class="pdf-nav-btns">
+                        <button class="v-icon-btn" style="width:30px;height:30px;background:var(--bg-hover);color:var(--text-main);" onclick="prevPdfPage()"><i data-lucide="chevron-right" style="width:15px;height:15px;"></i></button>
+                        <button class="v-icon-btn" style="width:30px;height:30px;background:var(--bg-hover);color:var(--text-main);" onclick="nextPdfPage()"><i data-lucide="chevron-left" style="width:15px;height:15px;"></i></button>
                     </div>
                 </div>
             </div>
@@ -1704,7 +2433,7 @@
         }
     });
     document.addEventListener('contextmenu', e => {
-        if (e.target.closest('.player-video') || e.target.closest('.pdf-page') || e.target.closest('.post-media') ||
+        if (e.target.closest('.player-video') || e.target.closest('.pdf-page-wrap') || e.target.closest('.post-media') ||
             e.target.closest('.image-viewer') || e.target.closest('.audio-player-mezzo')) {
             e.preventDefault();
             showToast('⚠️ راست‌کلیک ممنوع');
@@ -1739,7 +2468,6 @@
     window.openItem = openItem;
     window.togglePlay = togglePlay;
     window.stepVideo = stepVideo;
-    window.setVideoSpeed = setVideoSpeed;
     window.toggleVideoLock = toggleVideoLock;
     window.cycleVideoAspect = cycleVideoAspect;
     window.togglePipMode = togglePipMode;
@@ -1759,6 +2487,8 @@
     window.showToast = showToast;
     window.nextPdfPage = nextPdfPage;
     window.prevPdfPage = prevPdfPage;
+    window.pdfZoomIn = pdfZoomIn;
+    window.pdfZoomOut = pdfZoomOut;
     window.toggleTheme = toggleTheme;
     window.setFilter = setFilter;
     window.confirmResume = confirmResume;
@@ -1777,6 +2507,16 @@
     window.pdfSearch = pdfSearch;
     window.pdfBookmark = pdfBookmark;
     window.toggleSave = toggleSave;
+    window.cycleVideoSpeed = cycleVideoSpeed;
+    window.toggleVideoMute = toggleVideoMute;
+    window.goToPdfPage = goToPdfPage;
+    window.pdfToggleSearch = pdfToggleSearch;
+    window.pdfToggleThumbs = pdfToggleThumbs;
+    window.toggleImageFullscreen = toggleImageFullscreen;
+    window.imageFlipH = imageFlipH;
+    window.toggleAudioMute = toggleAudioMute;
+    window.audioPrev = audioPrev;
+    window.audioNext = audioNext;
 </script>
 </body>
 </html>
